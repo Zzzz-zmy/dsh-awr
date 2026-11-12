@@ -1,0 +1,23 @@
+goals:
+- id: intake-goal
+  status: active
+  success_criteria:
+  - Build a DeepSeek Harness plugin that lets AWR manage work state for projects developed in DSH, including an unattended one-click project takeover
+  summary: |-
+    Build a DeepSeek Harness plugin that lets AWR manage work state for projects developed in DSH, including an unattended one-click project takeover
+
+    Provenance: explicit --goal input. Existing implementation progress remains unverified until reviewed against source and evidence.
+  title: Build a DeepSeek Harness plugin that lets AWR manage work state for projects developed in DSH, including an unattended one-click project takeover
+work_items:
+- acceptance:
+  - Confirm goals, existing implementation, unfinished work, and blockers with source references.
+  - Mark uncertain progress as unverified and define acceptance criteria for the next executable task.
+  depends_on: []
+  id: INTAKE-001
+  kind: intake
+  next_action: Run awr intake inspect and read sources for each gap; add goal references, acceptance criteria, and next actions, then inspect again.
+  priority: P0
+  required: true
+  status: ready
+  summary: This is a new intake task; it does not establish whether existing functionality is implemented or accepted.
+  title: Verify project goals, current state, and the next deliverable

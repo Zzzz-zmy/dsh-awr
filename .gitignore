@@ -1,0 +1,21 @@
+# AWR runtime state (projection, not source)
+.awr/state.db*
+.awr/artifacts/
+.awr/mutations/
+.awr/cache/
+.awr/*.lock
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+.local/
+
+# AWR local runtime state
+.awr/state.db
+.awr/state.db-*
+.awr/clients/
+.awr/executions/
