@@ -19,3 +19,4 @@ dist/
 .awr/state.db-*
 .awr/clients/
 .awr/executions/
+.awr/intake/inventory.json
