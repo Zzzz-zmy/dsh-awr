@@ -2,11 +2,11 @@
 // so the bound, unbound, missing and mismatch cases are exercised without a real AWR.
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
-import { AwrError, createAwr, explain } from '../lib/awr-runtime.js'
+import { AwrError, createAwr, explain, nativeBehindLauncher, nativeTarget } from '../lib/awr-runtime.js'
 
 const BINDING_REPORT = { program: { version: '0.7.0' }, schema_version: 14, read_only: true, version: 1 }
 
@@ -21,7 +21,8 @@ function scratch(t) {
  * Write a fake awr that logs every call and answers by command word.
  * `answers` maps a substring of the arguments to the stdout it prints; `sleep` delays the answer.
  */
-function fakeAwr(dir, name, answers, { sleep = 0 } = {}) {
+function fakeAwr(dir, name, answers, { sleep = 0, mkdir = false } = {}) {
+  if (mkdir) mkdirSync(dir, { recursive: true })
   const bin = join(dir, name)
   const log = join(dir, `${name}.log`)
   const cases = Object.entries(answers)
@@ -70,7 +71,7 @@ test('unbound: uses the awr on PATH', async (t) => {
 })
 
 test('missing: no binding file and no awr on PATH stops with a readable message', async (t) => {
-  const awr = createAwr({ env: { PATH: scratch(t) } })
+  const awr = createAwr({ env: { PATH: scratch(t) }, fallbackDirs: [] })
   const root = project(t)
   await assert.rejects(awr.run(root, ['status']), (error) => {
     assert.equal(error.kind, 'missing')
@@ -79,28 +80,66 @@ test('missing: no binding file and no awr on PATH stops with a readable message'
   })
 })
 
+test('unbound: an awr in a fallback directory is found when PATH has none, as in a desktop app', async (t) => {
+  const dir = scratch(t)
+  fakeAwr(dir, 'awr', healthy)
+  const root = project(t)
+  const awr = createAwr({ env: { PATH: '/usr/bin:/bin' }, fallbackDirs: [join(dir, 'missing'), dir] })
+  assert.equal((await awr.resolve(root)).cli, join(dir, 'awr'))
+  // PATH still wins over the fallbacks.
+  const first = scratch(t)
+  const winner = fakeAwr(first, 'awr', healthy)
+  const both = createAwr({ env: { PATH: first }, fallbackDirs: [dir] })
+  assert.equal((await both.resolve(project(t))).cli, winner.bin)
+})
+
+test('an npm launcher is replaced by the native binary beside it, so no node is needed', async (t) => {
+  const target = nativeTarget()
+  if (!target) return t.skip('no native target for this platform')
+  const prefix = scratch(t)
+  const scope = join(prefix, 'lib', 'node_modules', '@originoneai')
+  mkdirSync(join(scope, 'awr', 'bin'), { recursive: true })
+  mkdirSync(join(prefix, 'bin'))
+  const launcher = join(scope, 'awr', 'bin', 'awr.cjs')
+  writeFileSync(launcher, '#!/usr/bin/env node\nconsole.error("the launcher must not run")\n')
+  chmodSync(launcher, 0o755)
+  symlinkSync(launcher, join(prefix, 'bin', 'awr'))
+  // No native package yet: the launcher is kept.
+  assert.equal(await nativeBehindLauncher(join(prefix, 'bin', 'awr')), join(prefix, 'bin', 'awr'))
+  const native = fakeAwr(join(scope, `awr-${target}`, 'bin').replace(/^/, ''), 'awr', healthy, { mkdir: true })
+  const nativeReal = realpathSync(native.bin) // the launcher is resolved through symlinks, as macOS temp dirs are
+  assert.equal(await nativeBehindLauncher(join(prefix, 'bin', 'awr')), nativeReal)
+  // Through the runner: PATH holds only the launcher, and the native binary is what runs.
+  const awr = createAwr({ env: { PATH: join(prefix, 'bin') }, fallbackDirs: [] })
+  const root = project(t)
+  assert.equal((await awr.resolve(root)).cli, nativeReal)
+  assert.deepEqual(await awr.run(root, ['status']), { ok: true, project_revision: 7 })
+  // A plain executable is returned unchanged.
+  assert.equal(await nativeBehindLauncher(native.bin), native.bin)
+})
+
 test('missing: the pinned cli does not exist', async (t) => {
   const root = project(t, { cli: join(scratch(t), 'gone', 'awr') })
-  await assert.rejects(createAwr({ env: {} }).run(root, ['status']), { kind: 'missing' })
+  await assert.rejects(createAwr({ env: {}, fallbackDirs: [] }).run(root, ['status']), { kind: 'missing' })
 })
 
 test('mismatch: a changed binary is not run', async (t) => {
   const bound = fakeAwr(scratch(t), 'awr', healthy)
   const root = project(t, { cli: bound.bin, cli_sha256: 'sha256:' + '0'.repeat(64) })
-  await assert.rejects(createAwr({ env: {} }).run(root, ['status']), { kind: 'binary_changed' })
+  await assert.rejects(createAwr({ env: {}, fallbackDirs: [] }).run(root, ['status']), { kind: 'binary_changed' })
   assert.equal(bound.calls().length, 0)
 })
 
 test('mismatch: program version differs from the pinned binding', async (t) => {
   const bound = fakeAwr(scratch(t), 'awr', healthy)
   const root = project(t, { cli: bound.bin, program_version: '0.4.0', schema_version: 14 })
-  await assert.rejects(createAwr({ env: {} }).run(root, ['status']), { kind: 'version_mismatch' })
+  await assert.rejects(createAwr({ env: {}, fallbackDirs: [] }).run(root, ['status']), { kind: 'version_mismatch' })
 })
 
 test('mismatch: schema differs from the pinned binding', async (t) => {
   const bound = fakeAwr(scratch(t), 'awr', healthy)
   const root = project(t, { cli: bound.bin, program_version: '0.7.0', schema_version: 13 })
-  await assert.rejects(createAwr({ env: {} }).run(root, ['status']), (error) => {
+  await assert.rejects(createAwr({ env: {}, fallbackDirs: [] }).run(root, ['status']), (error) => {
     assert.equal(error.kind, 'schema_mismatch')
     assert.match(explain(error), /does not migrate, restore or downgrade/)
     return true
