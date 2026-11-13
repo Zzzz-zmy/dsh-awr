@@ -12,8 +12,10 @@ checkpoints, reports compactions, suggests evidence and handles forks.
 
 Its interface is for people. The conversation shows one quiet line for what AWR does and nothing for what the
 interface asks; the AWR card in the header speaks in plain words and folds every engineering fact; the **Progress** tab
-shows the whole project (mainlines, dependencies, lanes) the way AWR's own overview does; and the card checks GitHub for
-a newer version of the plugin and installs it. MIT licensed and public ([docs/owner-decisions.md](docs/owner-decisions.md)).
+answers "what should happen next" first — a structured next step (headline, which work item it belongs to, its measured
+basis), what is being worked on right now, recent ledger events in AWR's own words, honest health findings from
+`awr doctor`, and AWR's accounting stated as AWR states it (no blended completion percentage, ever); and the card checks
+GitHub for a newer version of the plugin and installs it. MIT licensed and public ([docs/owner-decisions.md](docs/owner-decisions.md)).
 The ledger is `.awr/intake/work-ledger.yaml`.
 
 ## Install
@@ -40,6 +42,7 @@ plugin manager, which puts the profile back if it fails ([docs/panel.md](docs/pa
 ```sh
 npm test                                   # package tests, Node's built-in runner, no dependencies
 npm run build                              # client.js is generated from client/*.js; a test fails when it is stale
+npm run verify:page                        # the page's machine-checkable honesty rules, run against real AWR data
 scripts/build-awr-lab.sh <awr-checkout>    # the local AWR this plugin is developed against
 ```
 
@@ -70,7 +73,10 @@ only through the `awr` CLI (argv) and the `awr-mcp` server; it never touches `.a
 DSH conversations are identified to AWR as `--client generic --external-session dsh:<session id>`.
 No DSH-specific client dialect is added to AWR.
 
-## Planned capabilities
+## Capability map
+
+Every row below ships in v0.2.1 — the table is kept as the surface map (which DSH surface each capability hooks into
+and which `awr` action it calls), not as a plan. Priorities are the ones the capabilities were built in.
 
 | Priority | Capability | DSH surface | AWR action |
 | --- | --- | --- | --- |
