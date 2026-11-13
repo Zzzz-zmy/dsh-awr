@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--
+  P2 跨项目总览 · 高保真对照稿（非实现，仅决策用）
+  数据全部为 2026-11-13 真实采集：
+  - 项目清单：~/.local/state/awr/projects.json（version 3，4 条）
+  - status：awr --project <root> status --json（awr 0.8.0 lab）
+  - 事件：awr event history --json 全量翻页 136 条
+  规矩同 P0：零混合完成率、零 ULID、AWR 原话不翻译、读不到≠读为空。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AWR · 跨项目总览（对照稿）</title>
+<style>
+  :root {
+    --bg:#0d1017; --panel:#151a24; --panel2:#1b2130; --line:#252c3d;
+    --tx:#e6eaf2; --tx2:#9aa5bb; --tx3:#5f6b83;
+    --ok:#3fb27f; --bad:#e5534b; --warn:#d9a03f; --info:#5b8def;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f6f7fa; --panel:#fff; --panel2:#eef1f6; --line:#dfe3ec;
+      --tx:#1c2230; --tx2:#5b6478; --tx3:#8d96a9; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--tx);
+    font:14px/1.55 -apple-system,'PingFang SC','Microsoft YaHei',sans-serif; }
+  .wrap { max-width:980px; margin:0 auto; padding:28px 20px 60px; }
+  .banner { border:1px dashed var(--warn); color:var(--warn); border-radius:10px;
+    padding:8px 14px; font-size:12.5px; margin-bottom:20px; }
+  h1 { font-size:19px; margin:0 0 2px; }
+  .sub { color:var(--tx2); font-size:12.5px; margin-bottom:22px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:760px){ .grid{grid-template-columns:1fr;} }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:16px 18px; }
+  .q { font-size:12px; color:var(--tx3); margin-bottom:8px; }
+  .name { font-size:15.5px; font-weight:650; display:flex; align-items:center; gap:8px; }
+  .dot { width:8px; height:8px; border-radius:50%; flex:none; }
+  .dot.ok{ background:var(--ok);} .dot.att{ background:var(--warn);}
+  .nums { display:flex; gap:18px; margin:12px 0 10px; }
+  .num b { display:block; font-size:21px; font-variant-numeric:tabular-nums; font-weight:650; }
+  .num span { font-size:11.5px; color:var(--tx2); }
+  .num.blocked b { color:var(--bad); }
+  .next { background:var(--panel2); border-radius:9px; padding:9px 12px; font-size:12.8px;
+    color:var(--tx); margin-top:4px; }
+  .next em { font-style:normal; color:var(--tx3); font-size:11px; display:block; margin-bottom:3px; }
+  .issue { border-left:3px solid var(--warn); padding:8px 12px; margin-top:10px;
+    background:var(--panel2); border-radius:0 9px 9px 0; font-size:12.6px; }
+  .issue code { font:11.5px/1.5 ui-monospace,Menlo,monospace; color:var(--warn);
+    word-break:break-all; display:block; margin-top:4px; }
+  .foot { margin-top:9px; font-size:11.8px; color:var(--tx3); }
+  .tip { font-size:11.8px; color:var(--tx3); margin-top:6px; }
+  section.trend { margin-top:22px; }
+  .bars { display:flex; align-items:flex-end; gap:8px; height:96px; margin:14px 4px 6px; }
+  .bar { flex:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; }
+  .stack { border-radius:4px 4px 0 0; overflow:hidden; display:flex; flex-direction:column-reverse; }
+  .seg.noise { background:var(--panel2); }
+  .seg.act { background:var(--info); }
+  .bar.today .seg.act { outline:2px solid var(--info); outline-offset:-2px; }
+  .lbl { font-size:10.5px; color:var(--tx3); text-align:center; margin-top:5px;
+    font-variant-numeric:tabular-nums; }
+  .legend { display:flex; gap:16px; font-size:11.8px; color:var(--tx2); margin-top:4px; }
+  .sw { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; }
+  .shallow { margin-top:10px; border:1px dashed var(--line); border-radius:9px;
+    padding:9px 12px; font-size:12.3px; color:var(--tx2); }
+  .honest { margin-top:26px; border-top:1px solid var(--line); padding-top:14px;
+    font-size:12.2px; color:var(--tx3); }
+  .honest li { margin:3px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner">对照稿（P2 提案，未实现）——页面骨架是设计稿，但下面每一个数字、每一句话都来自 2026-11-13 的真实命令输出，采集口径见页脚。数据快照时间 2026-11-13 22:43（本地）。</div>
+  <h1>跨项目总览</h1>
+  <div class="sub">回答一个问题：<b>我登记给 AWR 的项目里，哪个在等我？</b>　本页只做读取，不启动、不修复、不修改任何项目状态。</div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="q">这个项目现在最需要什么？</div>
+      <div class="name"><span class="dot ok"></span>BigDataOps bdp-platform</div>
+      <div class="nums">
+        <div class="num blocked"><b>1</b><span>卡住（blocked）</span></div>
+        <div class="num"><b>1</b><span>可做（planned）</span></div>
+        <div class="num"><b>1</b><span>草稿（draft）</span></div>
+        <div class="num"><b>197</b><span>已完成</span></div>
+      </div>
+      <div class="next"><em>AWR 的下一步建议（原话）</em>核实 OaFlowApprovalGateway 组件入参与 starter 多选控件协议；diff 节点 VO（CodeDiffNode 等）加 changeItemValue。</div>
+      <div class="foot">最近使用：今天 21:16 · 状态 connected</div>
+      <div class="tip">数字口径：各状态是台账里该状态的工作项条数，不是百分比，不相加成「总进度」。</div>
+    </div>
+
+    <div class="card">
+      <div class="q">这个项目现在最需要什么？</div>
+      <div class="name"><span class="dot ok"></span>dsh-awr（本项目）</div>
+      <div class="nums">
+        <div class="num blocked"><b>0</b><span>卡住（blocked）</span></div>
+        <div class="num"><b>3</b><span>正在进行</span></div>
+        <div class="num"><b>43</b><span>已完成</span></div>
+      </div>
+      <div class="next"><em>AWR 的下一步建议（原话，截断）</em>PR #1 已开：https://github.com/Zzzz-zmy/dsh-awr/pull/1 （可自动合并，node --test 419 项 0 失败）。业主验收按 docs/verify-20261113/acceptance-checklist.md 十二项走…</div>
+      <div class="foot">最近使用：今天 22:41 · 状态 connected</div>
+    </div>
+
+    <div class="card">
+      <div class="q">为什么这个项目不在状态里？</div>
+      <div class="name"><span class="dot att"></span>awr-console</div>
+      <div class="issue">AWR 标记为 attention，原因原话：
+        <code>storage error: read queries require a current AWR database; use doctor to inspect it</code></div>
+      <div class="foot">本页不会替它「修复」。想处理请在终端跑 AWR 的 doctor（页面只读）。</div>
+      <div class="tip">没有 project_id —— 它还没完成接管登记，所以没有台账数字可显示，这不是读到了 0。</div>
+    </div>
+
+    <div class="card">
+      <div class="q">为什么这个项目不在状态里？</div>
+      <div class="name"><span class="dot att"></span>demo</div>
+      <div class="issue">AWR 标记为 attention，原因原话：
+        <code>storage error: read queries require a current AWR database; use doctor to inspect it</code></div>
+      <div class="foot">最近一次被 AWR 扫到：今天 22:40 · 从未被使用过（last_used 为 0，显示「从未」，不显示假时间）</div>
+    </div>
+  </div>
+
+  <section class="card trend">
+    <div class="q">过去 14 天，哪些天有动静？（台账趋势 · 提案之一）</div>
+    <div class="bars">
+      <!-- 13 个空位 + 今天，全部真实：项目台账 2026-11-13 才建立 -->
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar"><div class="stack" style="height:0"></div><div class="lbl"></div></div>
+      <div class="bar today"><div class="stack" style="height:100%"><div class="seg noise" style="height:67.6%"></div><div class="seg act" style="height:32.4%"></div></div><div class="lbl">今天 136</div></div>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--info)"></i>工作动作 44 条（session / checkpoint / work / proposal）</span>
+      <span><i class="sw" style="background:var(--panel2); border:1px solid var(--line)"></i>源同步噪声 92 条（source.*）</span>
+    </div>
+    <div class="shallow">诚实说明：这个项目的台账从 2026-11-13 才开始，所以现在只有这一根柱子。趋势要攒够日子才画得出形状——这不是坏了，是刚出生。</div>
+  </section>
+
+  <div class="honest">
+    <b>数据从哪来（可复跑）：</b>
+    <ul>
+      <li>项目清单与 attention 原因：读 <code>~/.local/state/awr/projects.json</code>（AWR 内部文件，非稳定契约；读不到就整卡显示「读不到注册表+路径」，不猜）。</li>
+      <li>每项目的状态数字与「下一步建议」：<code>awr --project &lt;root&gt; status --json</code>（awr 0.8.0）。原话不翻译、不改写。</li>
+      <li>趋势：<code>awr event history --json</code> 全量游标翻页（实测 2 页 136 条）。</li>
+      <li>规矩：无混合完成率、无 ULID 出现在默认视图、「没读到」与「读为空」分开显示、页面零写操作。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
