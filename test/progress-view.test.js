@@ -194,3 +194,30 @@ test('the view answers the four questions and says honestly why work waits', () 
   assert.equal(byKey.B.state, 'waiting')
   assert.equal(view.accounting.available, false, 'accounting is passed through as it is, including when it says no')
 })
+
+test('the coverage counts what this awr declares and what this machine answers, by domain', () => {
+  const capabilities = { program: { version: '0.7.0' }, capabilities: [
+    { id: 'work.claim', available: true },
+    { id: 'work.checkpoint', available: true },
+    { id: 'team.handoff', available: false },
+  ] }
+  const view = buildProgress(snapshot([node('A-1')]), { capabilities })
+  assert.deepEqual(view.coverage, {
+    total: 3,
+    available: 2,
+    groups: [{ id: 'work', total: 2, available: 2 }, { id: 'team', total: 1, available: 0 }],
+    cliVersion: '0.7.0',
+  })
+  assert.equal(buildProgress(snapshot([node('A-1')])).coverage, undefined, 'not read means not shown')
+  assert.equal(buildProgress(snapshot([node('A-1')]), { capabilities: { capabilities: [] } }).coverage, undefined, 'an empty document answers nothing')
+})
+
+test('the health is what awr doctor says, and nothing more', () => {
+  const good = buildProgress(snapshot([node('A-1')]), { doctor: { database_ok: true, schema_version: 14, integrity: ['ok'], foreign_key_violations: 0, schema_issues: [] } })
+  assert.deepEqual(good.health, { ok: true, issues: [], schemaVersion: 14 })
+  const bad = buildProgress(snapshot([node('A-1')]), { doctor: { database_ok: false, schema_issues: [{ problem: 'x' }], foreign_key_violations: 3, integrity: ['ok', 'foreign_key_mismatch'] } })
+  assert.equal(bad.health.ok, false)
+  assert.deepEqual(bad.health.issues, ['database', 'schema', 'references', 'integrity'])
+  assert.equal(buildProgress(snapshot([node('A-1')])).health, undefined, 'a doctor nobody ran has no opinion')
+})
+

@@ -157,6 +157,17 @@ window.__ModuleLoader__.load({
       'band.next': 'Next step',
       'band.next.none': 'Nothing to move right now',
       'band.cells': '{done} of {total} pieces of work done',
+
+      'coverage.title': 'What this AWR can do',
+      'coverage.answered': '{n} of {total} answered',
+      'health.title': 'Is the project sound',
+      'health.ok': 'The project database is sound',
+      'health.schema': 'schema v{v}',
+      'health.issue.database': 'The project database does not report itself sound',
+      'health.issue.schema': 'The database does not match the shape this awr expects',
+      'health.issue.references': 'Some records point at things that are gone',
+      'health.issue.integrity': 'The integrity checks did not all pass',
+
       'state.active': 'In progress',
       'state.blocked': 'Blocked',
       'state.ready': 'Ready',
@@ -352,6 +363,17 @@ window.__ModuleLoader__.load({
       'band.next': '下一步做什么',
       'band.next.none': '暂时没有可推进的',
       'band.cells': '{total} 项工作已完成 {done} 项',
+
+      'coverage.title': '本机的 AWR 能做什么',
+      'coverage.answered': '{total} 项能力应答 {n} 项',
+      'health.title': '项目是否健康',
+      'health.ok': '项目数据库完好',
+      'health.schema': '表结构 v{v}',
+      'health.issue.database': '项目数据库没有报告自己完好',
+      'health.issue.schema': '数据库与本版本 awr 期望的结构不符',
+      'health.issue.references': '存在指向已消失记录的引用',
+      'health.issue.integrity': '完整性检查未全部通过',
+
       'state.active': '进行中',
       'state.blocked': '受阻',
       'state.ready': '可开始',
@@ -1429,6 +1451,42 @@ window.__ModuleLoader__.load({
             h(Light, { state }), t(`state.${state}`), h('span', { style: { color: C.text3, fontVariantNumeric: 'tabular-nums' } }, counts[state])))))
     }
 
+    /**
+     * What this AWR can do, from its own negotiation: how many of the capabilities it declares this machine answers, and
+     * each domain of them. A domain that answers less than it declares is the gap, shown in the colour of a problem.
+     */
+    function Coverage({ coverage, t }) {
+      if (!coverage) return null
+      return h('div', { 'data-testid': 'awr-coverage', style: { minWidth: 0 } },
+        h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' } },
+          h('div', { style: P.label }, t('coverage.title')),
+          h('span', { style: { fontSize: 12, lineHeight: '16px', color: coverage.available < coverage.total ? C.bad : C.text3, fontVariantNumeric: 'tabular-nums' } },
+            t('coverage.answered', { n: coverage.available, total: coverage.total }))),
+        h('div', { style: { fontSize: 22, lineHeight: '28px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text, marginTop: 6 } },
+          `${coverage.available} / ${coverage.total}`,
+          coverage.cliVersion ? h('span', { style: { fontSize: 12, lineHeight: '28px', fontWeight: 400, color: C.text3, marginLeft: 8 } }, `awr ${coverage.cliVersion}`) : null),
+        h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 } },
+          ...(coverage.groups ?? []).map((group) => h('span', { key: group.id, 'data-testid': 'awr-coverage-group', title: `${group.id} ${group.available} / ${group.total}`, style: { fontSize: 12, lineHeight: '18px', padding: '0 8px', borderRadius: 999, border: `.5px solid ${group.available < group.total ? C.bad : C.line2}`, color: group.available < group.total ? C.bad : C.text2, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' } },
+            group.id, ' ', `${group.available}/${group.total}`))))
+    }
+
+    /** How the project's own database stands, from `awr doctor`: what it says, in the words it means. */
+    function Health({ health, t }) {
+      if (!health) return null
+      const ISSUE = { database: 'health.issue.database', schema: 'health.issue.schema', references: 'health.issue.references', integrity: 'health.issue.integrity' }
+      return h('div', { 'data-testid': 'awr-health', style: { minWidth: 0 } },
+        h('div', { style: P.label }, t('health.title')),
+        health.ok
+          ? h('div', { style: { display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 } },
+            h(Light, { state: 'done', size: 7 }),
+            h('span', { style: { fontSize: 14, lineHeight: '20px', color: C.text } }, t('health.ok')),
+            Number.isFinite(health.schemaVersion) ? h('span', { style: { fontSize: 12, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null)
+          : h('div', { style: { marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 } },
+            ...health.issues.map((issue) => h('div', { key: issue, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '20px', color: C.bad } },
+              h(Light, { state: 'blocked', size: 7 }), t(ISSUE[issue] ?? 'health.issue.database'))),
+            Number.isFinite(health.schemaVersion) ? h('div', { style: { fontSize: 12, lineHeight: '18px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null))
+    }
+
     /** What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request. */
     function Needs({ items, t, onPick }) {
       const [all, setAll] = React.useState(false)
@@ -1715,7 +1773,13 @@ window.__ModuleLoader__.load({
                   mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', onPick: pick })
                     : mode === 'graph' ? h(GraphView, { nodes: visible, t, selected, matches, zoom, onPick: pick })
                       : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, onPick: pick })),
-                node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null))))
+                node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null),
+
+              progress.coverage || progress.health
+                ? h('div', { 'data-testid': 'awr-footzones', style: { marginTop: 40, paddingTop: 20, borderTop: `.5px solid ${C.line2}`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px 48px' } },
+                  h(Coverage, { coverage: progress.coverage, t }),
+                  h(Health, { health: progress.health, t }))
+                : null)))
     }
 
     // ---- client/60-rows.js ----

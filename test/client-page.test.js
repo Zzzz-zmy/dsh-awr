@@ -367,3 +367,19 @@ test('the header light and the page show the same project: what one reads, the o
   await client.fire(2500)
   assert.equal(light(), 'good')
 })
+
+test("the foot of the page says what this awr can do and whether the project is sound", async () => {
+  const caps = (firstAnswers) => ({ program: { version: "0.7.0" }, capabilities: Array.from({ length: 57 }, (_, i) => ({ id: `domain${i % 3}.cap${i}`, available: i === 0 ? firstAnswers : true })) })
+  const doctor = { database_ok: true, schema_version: 14, integrity: ["ok"], foreign_key_violations: 0, schema_issues: [] }
+  const { ui } = await page({ progress: () => buildProgress(snapshot(), { capabilities: caps(true), doctor }) })
+  const foot = textOf(ui.byTestId("awr-coverage"))
+  assert.match(foot, /57 \/ 57/, "the machine answers everything it declares")
+  assert.match(foot, /awr 0\.7\.0/, "and says which awr it asked")
+  assert.equal(ui.all((node) => node.props["data-testid"] === "awr-coverage-group").length, 3, "each domain counts on its own")
+  assert.match(textOf(ui.byTestId("awr-health")), /The project database is sound/, "the doctor says so in one line")
+  const gap = await page({ progress: () => buildProgress(snapshot(), { capabilities: caps(false), doctor }) })
+  assert.match(textOf(gap.ui.byTestId("awr-coverage")), /56 \/ 57/, "one domain not answering is a shown gap, not a hidden one")
+  const plain = await page()
+  assert.equal(plain.ui.byTestId("awr-coverage"), undefined, "a file without the fact shows no section")
+  assert.equal(plain.ui.byTestId("awr-health"), undefined)
+})
