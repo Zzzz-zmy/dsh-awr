@@ -1,6 +1,6 @@
 # DSH-077 业主像素验收清单（重启桌面 App 后逐项过）
 
-前提：完全退出并重启桌面 App（清掉旧 host lib——旧实例会把共享会话面板覆盖回 schema 1，双 host 抢占已在 `live-verify-schema2-full.md` 实锤）。
+前提：完全退出并重启桌面 App（清掉旧 host lib——旧实例会把共享会话面板覆盖回 schema 1，双 host 抢占已在 `live-verify-schema2-full.md` 实锤）。**无需重装插件**：desktop 与 awr-lab 两个 profile 的 `@originoneai/dsh-awr` 都软链到工作区（2026-11-13 实测 `node_modules/@originoneai/dsh-awr -> …/idea_works/dsh-awr`），重启即加载工作区最新构建；生产链路已用桌面同款系统 awr 0.7.0 做过端到端 smoke（rev 138 真数据：doctor 6 findings 真话上页、双语、0 ULID 0 百分比）。
 插件版本要求：分支 `refactor/ground-up-redesign` ≥ `a8b4ebe`（本机 link 安装即当前分支代码）。
 验收方式建议：任何一项看着不对，直接在侧栏浏览器里用 **dsh-redline** 圈选元素写意见发回，我按批注修。
 本清单不写死台账数字（台账每天在长，数字对不上先 `awr status` 对一遍再报）；写死的都是**不该变的规矩**——凡「出现 X 即造假/即 bug」的期望，X 出现请直接打回。
