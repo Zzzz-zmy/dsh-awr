@@ -536,3 +536,35 @@ test('a section with nothing in it stays on the page and says so, instead of van
   assert.match(needs, /Needs you0/, 'the count is shown as zero, not hidden')
   assert.match(needs, /Nothing is stuck, nothing is waiting/)
 })
+
+test('the legend and the mainlines filter each other, and every filter in force is named with a way out (DSH-079)', async () => {
+  const { ui } = await page()
+  await ui.click(ui.find((node) => node.props['data-lane-chip'] === 'B'))
+  await settle()
+  assert.deepEqual(keys(ui).sort(), ['B-1', 'B-2'], 'the lane pressed is the lane shown')
+  assert.match(textOf(ui.byTestId('awr-filters-count')), /2 of 7 shown/, 'and the page says how much of the ledger is on the screen')
+
+  await ui.click(ui.find((node) => node.props['data-legend'] === 'planned'))
+  await settle()
+  assert.deepEqual(keys(ui), ['B-2'], 'the second filter narrows the first instead of replacing it')
+  const bar = textOf(ui.byTestId('awr-filters'))
+  assert.match(bar, /Not started.*Mainline B/, 'both filters are named where they can be seen')
+
+  await ui.click(ui.find((node) => node.props['data-filter'] === 'lane'))
+  await settle()
+  assert.ok(!textOf(ui.byTestId('awr-filters')).includes('Mainline B'), 'one chip removes only its own filter')
+  assert.deepEqual(keys(ui), ['B-2'], 'the state filter stays where it was')
+
+  // The lane view draws every mainline, so it is where the chips show which one is picked and which are set aside.
+  await mode(ui, 'lanes')
+  await ui.click(ui.find((node) => node.props['data-lane-chip'] === 'B'))
+  await settle()
+  assert.equal(ui.find((node) => node.props['data-lane-chip'] === 'B').props['aria-pressed'], true, 'the picked mainline says it is picked')
+  assert.equal(ui.find((node) => node.props['data-lane-chip'] === 'A').props['data-off'], 'true', 'and the others step back without disappearing')
+
+  await ui.click(ui.byTestId('awr-filters-clear'))
+  await settle()
+  assert.equal(ui.byTestId('awr-filters'), undefined, 'and with nothing in force the bar is gone')
+  await mode(ui, 'lines')
+  assert.equal(keys(ui).length, 5, 'the whole ledger is back on the screen')
+})

@@ -451,7 +451,7 @@ function Detail({ node, byKey, t, onPick, onClaim, onClose }) {
 }
 
 /** By mainline: each with how far it is, the work that is left as cards, and the finished work folded. */
-function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, onClear, onPick }) {
+function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, laneFilter, onLane, onClear, onPick }) {
   const [open, setOpen] = React.useState({})
   const groups = lanes.map((lane) => {
     const own = nodes.filter((node) => node.lane === lane.id && matches(node)).sort(byState)
@@ -466,7 +466,7 @@ function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, onClea
     const doneOpen = showDone || open[`${lane.id}:done`] === true
     return h('section', { key: lane.id, 'data-lane': lane.id, style: { marginBottom: 24 } },
       h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 } },
-        h('span', { style: { fontSize: 14, lineHeight: '20px', fontWeight: 500, color: C.text } }, laneTitle(lane.id, t, strip)),
+        h('button', { type: 'button', className: 'awr-legend', 'data-lane-chip': lane.id, 'aria-pressed': laneFilter === lane.id, ...(laneFilter && laneFilter !== lane.id ? { 'data-off': 'true' } : {}), title: `${laneTitle(lane.id, t, strip)} · ${t('lane.chip.tip')}`, style: { padding: '0 0 0 8px', margin: '0 0 0 -8px', fontSize: 14, lineHeight: '20px', fontWeight: 500, color: C.text }, onClick: () => onLane?.(lane.id) }, laneTitle(lane.id, t, strip)),
         h('span', { style: { flex: 'none', width: 72, height: 4, borderRadius: 2, background: C.active, overflow: 'hidden' } }, h('span', { style: { display: 'block', width: `${lane.total ? (lane.done / lane.total) * 100 : 0}%`, height: '100%', background: C.text } })),
         h('span', { title: t('tip.lane'), style: { fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, lane.done === lane.total ? t('lane.alldone') : `${lane.done} / ${lane.total}`)),
       cards.length ? h('div', { style: grid }, ...cards.map((node) => h(WorkCard, { key: node.key, node, t, selected: selected === node.key, onPick }))) : null,
@@ -515,11 +515,11 @@ function GraphView({ nodes, t, selected, matches, zoom, onPick }) {
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(208px, 1fr))', gap: 8 } }, ...loose.map((node) => h(WorkCard, { key: node.key, node, t, selected: selected === node.key, onPick })))) : null)
 }
 
-function LanesView({ nodes, lanes, t, strip, selected, matches, zoom, onPick }) {
+function LanesView({ nodes, lanes, t, strip, selected, matches, zoom, laneFilter, onLane, onPick }) {
   const layout = React.useMemo(() => lanesLayout(nodes, lanes), [nodes, lanes])
   if (!nodes.length) return h('p', { style: { margin: '32px 0', fontSize: 13, color: C.text3 } }, t('empty.alldone'))
   const header = layout.columns.map((column, index) => h('div', { key: column.lane.id, 'data-lane-head': column.lane.id, style: { position: 'absolute', left: index * (CARD_W + LANE_GAP), top: 0, width: CARD_W, height: LANE_HEAD - 12, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, borderBottom: `.5px solid ${C.line2}` } },
-    h('span', { className: 'awr-clamp1', style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } }, laneTitle(column.lane.id, t, strip)),
+    h('button', { type: 'button', className: 'awr-legend', 'data-lane-chip': column.lane.id, 'aria-pressed': laneFilter === column.lane.id, ...(laneFilter && laneFilter !== column.lane.id ? { 'data-off': 'true' } : {}), title: `${laneTitle(column.lane.id, t, strip)} · ${t('lane.chip.tip')}`, style: { minWidth: 0, padding: '0 0 0 8px', margin: '0 0 0 -8px', fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text }, onClick: () => onLane?.(column.lane.id) }, h('span', { className: 'awr-clamp1' }, laneTitle(column.lane.id, t, strip))),
     h('span', { title: t('tip.lane'), style: { flex: 'none', fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${column.lane.done} / ${column.lane.total}`)))
   return h('div', { 'data-testid': 'awr-view-lanes', style: { overflowX: 'auto', padding: '4px 0 16px 16px' } }, h(Canvas, { layout, nodes, t, selected, matches, zoom, onPick, header }))
 }
@@ -551,6 +551,7 @@ function ProgressPage(props) {
   const [selected, setSelected] = React.useState(undefined)
   const [query, setQuery] = React.useState('')
   const [only, setOnly] = React.useState(undefined)
+  const [laneFilter, setLaneFilter] = React.useState(undefined)
   const [showDone, setShowDone] = React.useState(false)
   const [zoom, setZoom] = React.useState(1)
   const [failure, setFailure] = React.useState(undefined)
@@ -572,12 +573,14 @@ function ProgressPage(props) {
   // Finished work is folded away unless asked for, or unless the legend is asking for exactly that.
   const visible = React.useMemo(() => all.filter((node) => showDone || only === 'done' || node.state !== 'done'), [all, showDone, only])
   const needle = query.trim().toLowerCase()
-  const matches = React.useCallback((node) => (!only || node.state === only) && (!needle || node.title.toLowerCase().includes(needle) || String(node.key).toLowerCase().includes(needle)), [only, needle])
+  const matches = React.useCallback((node) => (!only || node.state === only) && (!laneFilter || node.lane === laneFilter) && (!needle || node.title.toLowerCase().includes(needle) || String(node.key).toLowerCase().includes(needle)), [only, laneFilter, needle])
 
   // A filter that empties the page has to be escapable without hunting for the control that set it.
   const clearFilters = () => {
     setOnly(undefined)
+    setLaneFilter(undefined)
     setQuery('')
+    setShowDone(false)
   }
 
   const start = async () => {
@@ -670,6 +673,20 @@ function ProgressPage(props) {
   const pick = (key) => setSelected(key === selected ? undefined : key)
   const graphish = mode !== 'lines'
   const inset = 'clamp(24px, 4vw, 48px)'
+  const pickLane = (id) => setLaneFilter(laneFilter === id ? undefined : id)
+  // Every filter that is on gets named where it can be seen, with the way out of it: a page narrowed by a chip
+  // nobody can see reads as a project that shrank (DSH-079).
+  const filters = []
+  if (only) filters.push({ key: 'state', label: t(`state.${only}`), clear: () => setOnly(undefined) })
+  if (laneFilter) filters.push({ key: 'lane', label: t('step.lane', { id: laneTitle(laneFilter, t, strip) }), clear: () => setLaneFilter(undefined) })
+  if (needle) filters.push({ key: 'query', label: t('filter.query', { q: query.trim() }), clear: () => setQuery('') })
+  if (showDone) filters.push({ key: 'done', label: t('tools.done'), clear: () => setShowDone(false) })
+  const filterBar = filters.length
+    ? h('div', { 'data-testid': 'awr-filters', style: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, margin: '20px 0 12px -8px' } },
+        h('span', { 'data-testid': 'awr-filters-count', style: { ...P.note, margin: 0, marginRight: 4 } }, t('filter.shown', { shown: visible.filter(matches).length, total: all.length })),
+        ...filters.map((item) => h('button', { key: item.key, type: 'button', className: 'awr-legend', 'data-filter': item.key, 'aria-pressed': true, title: t('filter.clear.one'), onClick: item.clear }, item.label, h(Icon, { name: 'x', size: 11 }))),
+        h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', 'data-testid': 'awr-filters-clear', style: { fontSize: 12 }, onClick: clearFilters }, t('filter.clear')))
+    : null
 
   return frame(h('div', { style: { maxWidth: 1280, margin: '0 auto', padding: `28px ${inset} 200px` } },
     h('div', { style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 } },
@@ -705,11 +722,12 @@ function ProgressPage(props) {
                 h('button', { type: 'button', className: 'awr-btn awr-btn-icon', title: t('tools.zoom.in'), 'aria-label': t('tools.zoom.in'), disabled: zoom >= 1.5, onClick: () => setZoom(Math.min(1.5, Math.round((zoom + 0.1) * 10) / 10)) }, h(Icon, { name: 'plus', size: 14 })),
                 h('button', { type: 'button', className: 'awr-btn awr-btn-icon', title: t('tools.zoom.fit'), 'aria-label': t('tools.zoom.fit'), onClick: fit }, h(Icon, { name: 'fit', size: 14 }))) : null)),
 
+          filterBar,
           h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 24 } },
             h('div', { ref: area, style: { minWidth: 0, flex: 1 } },
-              mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', onClear: clearFilters, onPick: pick })
+              mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', laneFilter, onLane: pickLane, onClear: clearFilters, onPick: pick })
                 : mode === 'graph' ? h(GraphView, { nodes: visible, t, selected, matches, zoom, onPick: pick })
-                  : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, onPick: pick })),
+                  : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, laneFilter, onLane: pickLane, onPick: pick })),
             node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null),
 
           progress.coverage || progress.health || progress.accounting
