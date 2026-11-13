@@ -591,8 +591,8 @@ work_items:
   acceptance:
   - "真机截图对照验收清单逐项通过，业主明确验收通过。"
   - "PR 创建并合并（或被业主叫停，记录原因）。"
-  next_action: "PR #1 已开：https://github.com/Zzzz-zmy/dsh-awr/pull/1 （可自动合并，node --test 403 项 0 失败；测试清理 flaky 已修 f3abe38）。业主验收按 docs/verify-20261113/acceptance-checklist.md 八项走（dsh-redline 已装，可圈选批注）。待办：①业主重启桌面 App 清掉旧 host lib（双 host 抢占实锤见 live-verify-schema2-full.md）②八项像素验收③点头后合并 PR #1。"
-  "evidence": ["docs/verify-20261113/live-verify-schema2-full.md", "docs/verify-20261113/acceptance-checklist.md", "PR: https://github.com/Zzzz-zmy/dsh-awr/pull/1"]
+  next_action: "PR #1 已开：https://github.com/Zzzz-zmy/dsh-awr/pull/1 （可自动合并，node --test 419 项 0 失败）。业主验收按 docs/verify-20261113/acceptance-checklist.md 十二项走（10f0268 升级：不写死台账数字，只写打回规矩；新区三层卡/筛选/体检 findings/此刻在做/事件原文已入列，dsh-redline 已装可圈选批注）。清单中机器可判的规矩已用真实 rev 130 数据 + harness 双语预检通过。待办：①业主重启桌面 App 清掉旧 host lib（双 host 抢占实锤见 live-verify-schema2-full.md）②十二项像素验收③点头后合并 PR #1。"
+  "evidence": ["docs/verify-20261113/live-verify-schema2-full.md", "docs/verify-20261113/acceptance-checklist.md", "PR: https://github.com/Zzzz-zmy/dsh-awr/pull/1", "验收清单升级 10f0268：八项→十二项规矩清单，并用真实 rev 130 + 真实 doctor 报告双语自动预检（体检 findings/needs 联动/零百分比/零 ULID/核算留白全过）"]
 - "id": "WORK-694e7efdd18142a58cd383b9071d6bc9"
   "title": "DSH-067: The plugin offers to install a matching awr when the machine has none or an old one"
   "status": "completed"
