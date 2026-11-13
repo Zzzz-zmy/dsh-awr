@@ -8,7 +8,7 @@ import { loadClient, settle, textOf } from '../test-support/client-harness.js'
 
 const managed = () => ({ projectRoot: '/work/portal', state: 'initialized', steps: [], stop: null, receipt: null })
 const offer = () => ({ projectRoot: '/work/portal', state: 'not_initialized', steps: [], stop: null, receipt: null })
-const item = (key, title, status, extra = {}) => ({ key, title, status, ready: extra.ready === true, blocker: extra.blocker ?? null, active_claims: extra.claimed ? [{}] : [], archived: false, next_action: extra.next ?? null, source_ref: { locator: 'file:///work/portal/docs/work-ledger.yaml', pointer: `/work_items/${key}` } })
+const item = (key, title, status, extra = {}) => ({ id: `sid-${key}`, key, title, status, ready: extra.ready === true, blocker: extra.blocker ?? null, active_claims: extra.claimed ? [{}] : [], archived: false, next_action: extra.next ?? null, source_ref: { locator: 'file:///work/portal/docs/work-ledger.yaml', pointer: `/work_items/${key}` } })
 const snapshot = () => ({
   version: 1,
   project_revision: 12,
@@ -35,7 +35,7 @@ const snapshot = () => ({
   },
   nav: {
     project: { name: 'Portal', id: 'P1' },
-    mainline_graph: { nodes: [{ work_key: 'A-2', outcomes: ['A PDF can be uploaded', 'A failed upload can be retried'], explainable_waits: [] }, { work_key: 'A-3', outcomes: [], explainable_waits: [{ reason: 'dependency' }] }] },
+    mainline_graph: { nodes: [{ work_key: 'A-2', outcomes: ['A PDF can be uploaded', 'A failed upload can be retried'], explainable_waits: [] }, { work_key: 'A-3', outcomes: [], explainable_waits: [{ summary: 'Waiting on the upload endpoint', release_condition: 'The upload endpoint is finished and accepted' }] }] },
   },
   goals: { hits: [{ external_key: 'g1', title: 'Everyone can find a document', status: 'active' }, { external_key: 'g2', title: 'Search answers in a second', status: 'candidate' }] },
   sessions: { sessions: [] },
@@ -53,21 +53,48 @@ const mode = async (ui, name) => {
   await settle()
 }
 
+test('the band at the very top answers the four questions', async () => {
+  const { ui } = await page()
+  const text = textOf(ui.byTestId('awr-goalband'))
+  assert.match(text, /The goalEveryone can find a document/, 'the confirmed goal is the first answer')
+  assert.match(text, /How far along2\/ 7 done/, 'the distance is told as done of total, never an invented rate')
+  assert.match(text, /Whose turnNobody has work in hand/, 'the claims in this fixture carry no names, and the band says so')
+  assert.match(text, /Next stepThe owner has to decide about interns/, 'what is stuck on a person is the next step')
+  await ui.click('awr-band-next')
+  await settle()
+  assert.match(textOf(ui.byTestId('awr-detail')), /Blocked byThe owner has to decide about interns/, 'the next step opens that work')
+})
+
+test('waiting work says why in AWR\'s own words, and ready work can really be claimed', async () => {
+  const { client, ui } = await page()
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'A-3'))
+  assert.match(textOf(ui.byTestId('awr-detail')), /Why it waitsWaiting on the upload endpointUnlocks when：The upload endpoint is finished and accepted/)
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'B-1'))
+  assert.match(textOf(ui.byTestId('awr-detail')), /Take this on/)
+  await ui.click('awr-detail-claim')
+  assert.ok(client.calls.some((line) => line.startsWith('/awr claim B-1')), 'the button runs the real claim command in this conversation')
+})
+
 test('a page opened on data written a moment ago asks the host nothing and shows the project', async () => {
   const { client, ui } = await page()
   assert.deepEqual(client.calls, [], 'no command, so nothing in the conversation')
   const text = ui.text()
   assert.match(text, /Project progress/)
   assert.match(text, /Portal · Goal: Everyone can find a document and 1 more/)
-  assert.match(textOf(ui.byTestId('awr-gauge')), /2\/ 7 done.*29%/)
+  assert.match(textOf(ui.byTestId('awr-gauge')), /2\/ 7 done/, 'the counts are the fact')
+  assert.ok(!textOf(ui.byTestId('awr-gauge')).includes('%'), 'no blended completion percent anywhere on the bar, which is what AWR refuses to give')
+  assert.match(textOf(ui.byTestId('awr-gauge-caliber')), /AWR refuses a blended percent/, 'and the bar says so in words instead')
   assert.match(textOf(ui.byTestId('awr-updated')), /^Updated \d\d:\d\d$/)
   assert.ok(client.reads.some((read) => read.path === progressPath('conv-1', '/Users/test')), 'the file the host writes is the one that is read')
 })
 
 test('the gauge has one part for each state that occurs, and the legend counts them', async () => {
   const { ui } = await page()
-  const parts = ui.all((node) => node.props['data-part']).map((node) => [node.props['data-part'], node.props.style.flex])
-  assert.deepEqual(parts, [['done', '2 0 0'], ['active', '1 0 0'], ['blocked', '1 0 0'], ['waiting', '1 0 0'], ['ready', '1 0 0'], ['planned', '1 0 0']])
+  // The bar is measured against the whole ledger, so a segment is as wide as the work it stands for.
+  const parts = ui.all((node) => node.props['data-part']).map((node) => [node.props['data-part'], Math.round(parseFloat(node.props.style.width))])
+  assert.deepEqual(parts, [['done', 29], ['active', 14], ['blocked', 14], ['waiting', 14], ['ready', 14], ['planned', 14]])
+  const inked = Object.fromEntries(ui.all((node) => node.props['data-part']).map((node) => [node.props['data-part'], node.props.style.background.includes('repeating') ? 'hatch' : 'ink']))
+  assert.deepEqual(inked, { done: 'ink', active: 'ink', blocked: 'ink', waiting: 'ink', ready: 'hatch', planned: 'hatch' }, 'work that has not started is hatched, not inked')
   const legend = Object.fromEntries(ui.all((node) => node.props['data-legend']).map((node) => [node.props['data-legend'], textOf(node)]))
   assert.deepEqual(legend, { active: 'In progress1', blocked: 'Blocked1', waiting: 'Waiting1', ready: 'Ready1', planned: 'Not started1', done: 'Done2' })
 })
@@ -371,4 +398,262 @@ test('the header light and the page show the same project: what one reads, the o
   client.host.publish()
   await client.fire(2500)
   assert.equal(light(), 'good')
+})
+
+test("the foot of the page says what this awr can do and whether the project is sound", async () => {
+  const caps = (firstAnswers) => ({ program: { version: "0.7.0" }, capabilities: Array.from({ length: 57 }, (_, i) => ({ id: `domain${i % 3}.cap${i}`, available: i === 0 ? firstAnswers : true })) })
+  const doctor = { database_ok: true, schema_version: 14, integrity: ["ok"], foreign_key_violations: 0, schema_issues: [] }
+  const { ui } = await page({ progress: () => buildProgress(snapshot(), { capabilities: caps(true), doctor }) })
+  const foot = textOf(ui.byTestId("awr-coverage"))
+  assert.match(foot, /57 \/ 57/, "the machine answers everything it declares")
+  assert.match(foot, /awr 0\.7\.0/, "and says which awr it asked")
+  assert.equal(ui.all((node) => node.props["data-testid"] === "awr-coverage-group").length, 3, "each domain counts on its own")
+  assert.match(textOf(ui.byTestId("awr-health")), /The project database is sound/, "the doctor says so in one line")
+  const gap = await page({ progress: () => buildProgress(snapshot(), { capabilities: caps(false), doctor }) })
+  assert.match(textOf(gap.ui.byTestId("awr-coverage")), /56 \/ 57/, "one domain not answering is a shown gap, not a hidden one")
+  const plain = await page()
+  assert.equal(plain.ui.byTestId("awr-coverage"), undefined, "a file without the fact shows no section")
+  assert.equal(plain.ui.byTestId("awr-health"), undefined)
+})
+
+test("when awr refuses to give an effort number, the page shows the refusal instead of a number", async () => {
+  const withNav = (nav) => ({ ...snapshot(), nav: { ...snapshot().nav, ...nav } })
+  const refusing = buildProgress(withNav({ accounting: { authoritative: false, available: false, detail: "Attach WS-040 account_approved_scope output; never invent a blended completion percent", is_not_goal_query_completion_rate: true, reason: "approved_contract_and_verified_observations_required", stages_are_independent: true } }))
+  assert.equal(refusing.accounting.available, false, "the refusal arrives as it was written")
+  const { ui } = await page({ progress: () => refusing })
+  const zone = textOf(ui.byTestId("awr-accounting"))
+  assert.match(zone, /No number yet/, "the page says so in one honest line")
+  assert.doesNotMatch(zone, /\d+ ?%/, "and never shows a percent AWR refused to give")
+  const counted = await page({ progress: () => buildProgress(withNav({ accounting: { available: true, sessions_observed: 6, works_claimed: 43 } })) })
+  const shown = textOf(counted.ui.byTestId("awr-accounting"))
+  assert.match(shown, /sessions_observed 6/, "when a real number exists it is shown as it is")
+  assert.match(shown, /works_claimed 43/)
+  const silent = await page()
+  assert.equal(silent.ui.byTestId("awr-accounting"), undefined, "when the file carries no accounting at all, nothing is drawn")
+})
+
+
+test('a broken ledger source gets a loud banner instead of a quiet empty page', async () => {
+  const broken = () => ({ ...buildProgress(snapshot()), sourceIssues: [{ code: 'SourceConflict', message: 'source fingerprint conflict: work_items "INTAKE-001" already has a different source or identity' }] })
+  const { ui } = await page({ progress: broken })
+  const banner = textOf(ui.byTestId('awr-source-issues'))
+  assert.match(banner, /SourceConflict/, 'the error code is shown as it is')
+  assert.match(banner, /INTAKE-001/, 'and the message AWR gave')
+  assert.match(banner, /awr intake inspect/, 'the banner says what to run to fix it')
+  const plain = await page()
+  assert.equal(plain.ui.byTestId('awr-source-issues'), undefined, 'a sound source shows no banner')
+})
+
+test('the next step is read in three layers: the sentence, why it is yours, what it moves', async () => {
+  const rich = () => {
+    const snap = snapshot()
+    snap.work_graph.nodes.find((node) => node.key === 'A-4').blocker = 'Open the merge request: https://github.com/o/r/pull/1 (auto-merge is on). The owner checks the eight pixels first.'
+    snap.nav.mainline_graph.nodes.push({ work_key: 'A-4', outcomes: ['A PDF can be uploaded'], explainable_waits: [] })
+    snap.nav.guidance = { basis: 'Work A-4 (who can see what)', when: 'the ledger changes', recheck: 'a claim conflict or a source change' }
+    snap.nav.accounting = { available: false, authoritative: false, detail: 'Attach the approved scope output; never invent a blended completion percent' }
+    return buildProgress(snap)
+  }
+  const { ui } = await page({ progress: rich })
+  const card = ui.byTestId('awr-nextstep')
+  assert.ok(card, 'the page carries a next step of its own, not one line in the band')
+  assert.match(textOf(ui.byId('awr-nextstep-open')), /^Open the merge request$/, 'the first layer is one sentence, without the address in it')
+  const links = ui.all((node) => node.type === 'a')
+  assert.deepEqual(links.map((node) => node.props.href), ['https://github.com/o/r/pull/1'], 'the address is handed over beside the sentence')
+  assert.match(textOf(ui.byTestId('awr-nextstep-why')), /^Open the merge request: https:\/\/github\.com\/o\/r\/pull\/1 \(auto-merge is on\)/, 'the second layer repeats the reason in full, address and all')
+  assert.match(textOf(card), /Stuck onOpen the merge request/, 'and names it as what the work is stuck on')
+  const facts = textOf(card)
+  assert.match(facts, /Mainline A 1 \/ 4/, 'the third layer is a real lane count, taken from the ledger')
+  assert.match(facts, /7 in the ledger, 2 done/, 'and the size of the ledger beside it')
+  assert.match(facts, /It is finished whenA PDF can be uploaded/, 'what the work has to achieve travels with it')
+  assert.match(facts, /AWR keeps no check mark against these/, 'the list says it cannot show a tick, instead of faking one')
+  assert.match(facts, /Why this line: Work A-4 \(who can see what\)/, 'AWR is asked why this is the line, and its answer is shown')
+  assert.match(facts, /never invent a blended completion percent/, 'what AWR withholds is quoted, not filled in')
+  assert.equal(facts.includes('%'), false, 'the card shows no invented percentage')
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'A-4'))
+  await settle()
+  assert.match(textOf(ui.byTestId('awr-detail')), /Blocked byOpen the merge request/, 'the card opens that piece of work')
+})
+
+test('a next step written by an older host still reads, and shows no empty rows', async () => {
+  const plain = () => {
+    const view = buildProgress(snapshot())
+    return { ...view, next: { key: 'A-4', state: 'blocked', text: 'The owner has to decide about interns' } }
+  }
+  const { ui } = await page({ progress: plain })
+  const card = ui.byTestId('awr-nextstep')
+  assert.ok(card, 'a card without the new fields is still a card')
+  assert.match(textOf(ui.byId('awr-nextstep-open')), /The owner has to decide about interns/, 'the whole line is used when there is no headline')
+  assert.match(textOf(ui.byTestId('awr-nextstep-why')), /^The owner has to decide about interns$/, 'a blocked step names what it is stuck on, even when the older host gave only the line')
+  assert.match(textOf(card), /AWR has no acceptance criteria/, 'no criteria, said plainly')
+  assert.equal(ui.all((node) => node.type === 'a').length, 0, 'no links, no link row')
+  assert.equal(ui.byTestId('awr-nextstep-when'), undefined, 'no timestamp, no timestamp row')
+  assert.equal(ui.byTestId('awr-nextstep-basis'), undefined, 'AWR said nothing about why, so the page says nothing either')
+})
+
+test('every number on the page says how it was counted, in the words the number means (DSH-079)', async () => {
+  const { ui } = await page()
+  const told = ui.all((node) => typeof node.props.title === 'string').map((node) => node.props.title)
+  const howfar = ui.find((node) => node.props['data-cell'] === 'howfar').children[0].props.title
+  assert.match(howfar, /done over all, unweighted/, 'the band admits what its 2 / 7 is a count of')
+  assert.match(howfar, /AWR refuses to give/, 'and that the rate AWR refuses is not this')
+  assert.ok(told.some((line) => /The whole bar is every piece of work in the ledger/.test(line)), 'the bar carries its own 口径')
+  const chips = ui.all((node) => node.props['data-legend'])
+  assert.ok(chips.length >= 2 && chips.every((chip) => / · /.test(chip.props.title ?? '')), 'each legend chip explains its state, not just its name')
+  assert.ok(told.some((line) => /how many of its own pieces are done/.test(line)), 'the lane counts say what they divide')
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'A-2'))
+  await settle()
+  const opened = ui.all((node) => typeof node.props.title === 'string').map((node) => node.props.title)
+  assert.ok(opened.some((line) => /AWR records no check mark against them/.test(line)), 'the done-when list says up front that nothing is ticked')
+})
+
+test('an empty place says which of the three kinds of empty it is (DSH-079)', async () => {
+  const none = await page({ progress: () => buildProgress({ ...snapshot(), work_graph: { nodes: [], edges: [], cycle: [], graph_valid: true } }) })
+  assert.equal(none.ui.byTestId('awr-page-empty').props['data-empty'], 'none', 'nothing has been written yet')
+  assert.match(none.ui.text(), /No work is recorded yet.*Once the agent records work/, 'which is said, with when it fills')
+
+  const broken = await page({
+    progress: () => ({
+      ...buildProgress({ ...snapshot(), work_graph: { nodes: [], edges: [], cycle: [], graph_valid: true } }),
+      sourceIssues: [{ code: 'SourceConflict', message: 'source fingerprint conflict: work_items "INTAKE-001" already has a different source or identity' }],
+    }),
+  })
+  assert.equal(broken.ui.byTestId('awr-page-empty').props['data-empty'], 'broken', 'a ledger that cannot be read is never the same page as an empty one')
+  assert.match(broken.ui.text(), /not because the project has no work/)
+
+  const { ui } = await page()
+  ui.byId('awr-search').props.onChange({ target: { value: 'nothing like this' } })
+  await settle()
+  assert.ok(ui.find((node) => node.props['data-empty'] === 'filtered'), 'the third kind: work exists and this cut of it is empty')
+  assert.match(ui.text(), /The work is still there/, 'which says the work is not gone')
+  await ui.click(ui.byTestId('awr-empty-clear'))
+  await settle()
+  assert.ok(keys(ui).includes('A-2'), 'and the way out of it is on the page')
+})
+
+test('a section with nothing in it stays on the page and says so, instead of vanishing', async () => {
+  const { ui } = await page({ progress: () => ({ ...buildProgress(snapshot()), attention: [] }) })
+  const needs = textOf(ui.byTestId('awr-page-needs'))
+  assert.match(needs, /Needs you0/, 'the count is shown as zero, not hidden')
+  assert.match(needs, /Nothing is stuck, nothing is waiting/)
+})
+
+test('the legend and the mainlines filter each other, and every filter in force is named with a way out (DSH-079)', async () => {
+  const { ui } = await page()
+  await ui.click(ui.find((node) => node.props['data-lane-chip'] === 'B'))
+  await settle()
+  assert.deepEqual(keys(ui).sort(), ['B-1', 'B-2'], 'the lane pressed is the lane shown')
+  assert.match(textOf(ui.byTestId('awr-filters-count')), /2 of 7 shown/, 'and the page says how much of the ledger is on the screen')
+
+  await ui.click(ui.find((node) => node.props['data-legend'] === 'planned'))
+  await settle()
+  assert.deepEqual(keys(ui), ['B-2'], 'the second filter narrows the first instead of replacing it')
+  const bar = textOf(ui.byTestId('awr-filters'))
+  assert.match(bar, /Not started.*Mainline B/, 'both filters are named where they can be seen')
+
+  await ui.click(ui.find((node) => node.props['data-filter'] === 'lane'))
+  await settle()
+  assert.ok(!textOf(ui.byTestId('awr-filters')).includes('Mainline B'), 'one chip removes only its own filter')
+  assert.deepEqual(keys(ui), ['B-2'], 'the state filter stays where it was')
+
+  // The lane view draws every mainline, so it is where the chips show which one is picked and which are set aside.
+  await mode(ui, 'lanes')
+  await ui.click(ui.find((node) => node.props['data-lane-chip'] === 'B'))
+  await settle()
+  assert.equal(ui.find((node) => node.props['data-lane-chip'] === 'B').props['aria-pressed'], true, 'the picked mainline says it is picked')
+  assert.equal(ui.find((node) => node.props['data-lane-chip'] === 'A').props['data-off'], 'true', 'and the others step back without disappearing')
+
+  await ui.click(ui.byTestId('awr-filters-clear'))
+  await settle()
+  assert.equal(ui.byTestId('awr-filters'), undefined, 'and with nothing in force the bar is gone')
+  await mode(ui, 'lines')
+  assert.equal(keys(ui).length, 5, 'the whole ledger is back on the screen')
+})
+
+test('the page says whose hands are on the work right now, and whose are not (DSH-079)', async () => {
+  const { ui } = await page({
+    progress: () => buildProgress({
+      ...snapshot(),
+      sessions: {
+        may_have_more: false,
+        sessions: [
+          { status: 'active', work_item_id: 'sid-A-2', model: 'some-model', started_at: Date.now() - 3600e3, start_project_revision: 44, last_checkpoint_id: 'c1' },
+          { status: 'active', work_item_id: null, started_at: Date.now() - 120e3 },
+          { status: 'ended', work_item_id: 'sid-A-1', started_at: Date.now() - 7200e3 },
+        ],
+      },
+    }),
+  })
+  const strip = textOf(ui.byTestId('awr-page-working'))
+  assert.match(strip, /Right now2 open/, 'how many sessions AWR has open, before any of their details')
+  assert.match(strip, /Build the upload endpoint/, 'the work a session claimed is named, not its identifier')
+  assert.match(strip, /An open session that claimed no work/, 'a session with nothing claimed is said out loud, not left out')
+  assert.ok(!strip.includes('A-2') && !strip.includes('sid-'), 'a session row shows the work and never an id')
+  const since = ui.all((node) => typeof node.props.title === 'string' && /from ledger revision/.test(node.props.title))
+  assert.ok(since.length, 'the ledger revision a session started at is there for the asking, not in the row')
+
+  const empty = await page()
+  assert.match(textOf(empty.ui.byTestId('awr-page-working')), /No session has any of this work claimed right now/, 'a project nobody has claimed is said, not skipped')
+
+  // A short session list is its own kind of almost-empty and gets its own sentence, not the events one.
+  const short = await page({
+    progress: () => buildProgress({
+      ...snapshot(),
+      sessions: { may_have_more: true, sessions: [{ status: 'active', work_item_id: 'sid-A-1', started_at: Date.now() }] },
+    }),
+  })
+  const shortStrip = textOf(short.ui.byTestId('awr-page-working'))
+  assert.match(shortStrip, /more sessions are open than it listed/, 'AWR saying the list is short is said in session words')
+  assert.ok(!shortStrip.includes('bounded read'), 'the events sentence is never borrowed for sessions')
+})
+
+test('the ledger’s own events are shown in AWR’s words, and a read with none in it says so (DSH-079)', async () => {
+  const { ui } = await page({
+    progress: () => buildProgress(snapshot(), {
+      events: {
+        events: [
+          { type: 'checkpoint.created', summary: 'Checkpoint written', created_at: Date.now() - 600e3, project_revision: 12, work_item_id: 'sid-A-2', importance: 'normal' },
+          { type: 'source.registered', summary: 'Source authority registration changed', created_at: Date.now() - 900e3, project_revision: 1, work_item_id: null },
+        ],
+        next_cursor: { project_revision: 1 },
+      },
+    }),
+  })
+  const block = textOf(ui.byTestId('awr-activity'))
+  assert.match(block, /Ledger events2 events/, 'the count of what was read, then the events')
+  assert.match(block, /Checkpoint written/, 'AWR wrote these words and the page hands them over')
+  assert.match(block, /Build the upload endpoint/, 'an event says which piece of work it is about, by its name')
+  assert.match(block, /The page carries one bounded read/, 'a bounded read admits it is bounded')
+  assert.ok(!block.includes('sid-') && !block.includes('checkpoint.created'), 'an event stays plain: no internal ids, no machine keys')
+
+  const missing = await page()
+  assert.match(textOf(missing.ui.byTestId('awr-activity')), /This awr does not hand the page its event history/, 'nothing read is said as nothing read')
+
+  const none = await page({ progress: () => buildProgress(snapshot(), { events: { events: [] } }) })
+  assert.match(textOf(none.ui.byTestId('awr-activity')), /This read of the ledger carries no events/, 'an empty ledger is not claimed to be an idle project')
+})
+
+// awr doctor findings are real problems (rev 130: five sessions still bound to finished work). The page used to
+// say "database is sound" while the doctor disagreed — now the findings are shown, in AWR own words.
+const doctorWithFindings = () => ({
+  ok: false, database_ok: true, schema_version: 14, integrity: ['ok'], foreign_key_violations: 0, schema_issues: [],
+  findings: [
+    { code: 'orphan_session', message: 'Active session has inconsistent bindings: bound work item is terminal or unusable (completed)', object_id: '01M79R9SQBX26RJTY25HZ2X9M8', object_kind: 'session', repair: { kind: 'interrupt_session', session_id: '01M79R9SQBX26RJTY25HZ2X9M8' }, severity: 'error' },
+    { code: 'orphan_session', message: 'Active session has inconsistent bindings: bound work item is terminal or unusable (completed)', object_id: '01M79R9SRVZ421DR39DVMWKR8B', object_kind: 'session', repair: { kind: 'interrupt_session', session_id: '01M79R9SRVZ421DR39DVMWKR8B' }, severity: 'error' },
+    { code: 'active_session', message: 'Session is active in the database; process liveness was not inspected, so death cannot be inferred', object_id: '01M7AH4A22QKK5GGJBCEXWYZZH', object_kind: 'session', repair: { kind: 'interrupt_session', session_id: '01M7AH4A22QKK5GGJBCEXWYZZH' }, severity: 'info' },
+  ],
+})
+test('what the doctor found is shown where it was found and where the person looks', async () => {
+  const { ui } = await page({ progress: () => buildProgress(snapshot(), { doctor: doctorWithFindings() }) })
+  const health = textOf(ui.byTestId('awr-health'))
+  assert.match(health, /orphan_session/, 'the finding is named by the code awr gave it')
+  assert.match(health, /× 2|× 1/, 'same-code findings are counted, not repeated')
+  assert.doesNotMatch(health, /database is sound/, 'the page cannot call the project sound while the doctor says otherwise')
+  const needs = textOf(ui.byTestId('awr-page-needs'))
+  assert.match(needs, /Active session has inconsistent bindings/, 'the message rides to the needs list in AWR own words')
+  const all = ui.text()
+  assert.doesNotMatch(all, /01M79R9SQBX26RJTY25HZ2X9M8/, 'session ids are not street address; they stay out of the default view')
+  const tips = []
+  const walk = (n) => { if (!n || typeof n !== 'object') return; if (!Array.isArray(n)) { if (typeof n.props?.title === 'string') tips.push(n.props.title); const c = n.children; if (Array.isArray(c)) for (const k of c) walk(k) } else for (const k of n) walk(k) }
+  walk(ui.root.tree)
+  assert.ok(tips.some((x) => x.includes('inconsistent bindings')), 'the full sentence is one hover away')
 })

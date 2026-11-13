@@ -33,12 +33,27 @@ const here = dirname(fileURLToPath(import.meta.url))
 const lab = join(here, '..', '.local', 'awr-lab', 'bin', 'awr')
 const real = existsSync(lab) ? test : test.skip
 
+function removeTree(dir, tries = 8) {
+  for (let i = 0; ; i++) {
+    try {
+      rmSync(dir, { recursive: true, force: true })
+      return
+    } catch (e) {
+      if (i >= tries || !['ENOTEMPTY', 'EBUSY', 'EAGAIN'].includes(e.code)) throw e
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50 << i)
+    }
+  }
+}
+
 function portal(t, extra = {}) {
   const root = mkdtempSync(join(tmpdir(), 'dsh-awr-host-proj-'))
   const state = mkdtempSync(join(tmpdir(), 'dsh-awr-host-state-'))
   const local = mkdtempSync(join(tmpdir(), 'dsh-awr-host-local-'))
   t.after(() => {
-    for (const dir of [root, state, local]) rmSync(dir, { recursive: true, force: true })
+    // A host run can still be flushing files when teardown starts, so a plain rmSync
+    // intermittently fails with ENOTEMPTY under the parallel runner. Retry instead of
+    // leaving the temp dir behind and reporting an unrelated failure.
+    for (const dir of [root, state, local]) removeTree(dir)
   })
   const git = (...args) => execFileSync('git', ['-c', 'user.email=a@b.c', '-c', 'user.name=n', ...args], { cwd: root, stdio: 'pipe' })
   git('init', '-q', '-b', 'main')

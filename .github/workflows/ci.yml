@@ -1,0 +1,20 @@
+name: build and test
+# The plugin has no dependencies and no lockfile: build is a plain node script, tests run on the
+# runtime itself. On a clean runner the cases that need a real awr binary skip themselves (29 on the
+# 2026-11-13 baseline — that skip path was verified locally by moving the lab symlink away); the
+# suite is expected green, not merely non-red.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25.x
+      - run: npm run build
+      - run: node --test test/*.test.js

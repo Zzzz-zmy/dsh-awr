@@ -141,7 +141,7 @@ function useProgress(ctx, sessionId, language, enabled) {
   const read = React.useCallback(async () => {
     const payload = await readData(ctx, sessionId, '.progress')
     // A view written by another version of the plugin is treated as no view: the host is asked to write it again.
-    if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 1 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
+    if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 2 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
     setProgress((current) => (current && current.updatedAt === payload.updatedAt ? current : payload))
     setError(undefined)
     return payload
@@ -196,4 +196,21 @@ function useProgress(ctx, sessionId, language, enabled) {
   }, [enabled, ctx, sessionId, read, ask])
 
   return { progress, error, working, ask }
+}
+
+/**
+ * The progress digest for the card: one silent read when the card opens, no command, no poll.
+ * Nothing shows until the host has written a view this version reads — the Progress tab is what asks for one.
+ */
+function useProgressDigest(ctx, sessionId, enabled) {
+  const [digest, setDigest] = React.useState(undefined)
+  React.useEffect(() => {
+    if (!enabled) { setDigest(undefined); return undefined }
+    let live = true
+    readData(ctx, sessionId, '.progress').then((payload) => {
+      if (live && payload?.ok && payload.schema === 2 && Array.isArray(payload.nodes)) setDigest(payload)
+    }, () => {})
+    return () => { live = false }
+  }, [ctx, sessionId, enabled])
+  return digest
 }

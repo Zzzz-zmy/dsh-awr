@@ -35,7 +35,7 @@ const C = {
 }
 
 /** The colour of a work state. One meaning everywhere: the header light, the rows, the cards, the gauge. */
-const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.text, cancelled: C.faint, good: C.good }
+const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.good, cancelled: C.faint, good: C.good }
 /** The order a person looks at work in: what moves, what is stuck, what could start, what waits, what is not begun. */
 const STATE_ORDER = ['active', 'blocked', 'ready', 'waiting', 'planned', 'done', 'cancelled']
 
@@ -208,4 +208,14 @@ const baseName = (path) => String(path ?? '').split(/[\\/]/).filter(Boolean).pop
 const clock = (ms) => {
   const date = new Date(ms)
   return Number.isFinite(date.getTime()) ? `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : ''
+}
+/** When something happened, in the distance a person is standing at: minutes, then hours, then days. */
+const ago = (ms, t) => {
+  if (!Number.isFinite(ms)) return ''
+  const mins = Math.floor((Date.now() - ms) / 60000)
+  if (mins < 1) return t('time.just')
+  if (mins < 60) return t('time.min', { n: mins })
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return t('time.hour', { n: hours })
+  return t('time.day', { n: Math.floor(hours / 24) })
 }

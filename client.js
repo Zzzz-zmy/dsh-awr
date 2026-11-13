@@ -66,6 +66,10 @@ window.__ModuleLoader__.load({
       'reason.too_broad': 'This folder is too broad to be one project',
       'reason.default': 'Something unexpected happened',
 
+      'digest.goal': 'Goal',
+      'digest.progress': 'Done',
+      'digest.next': 'Next',
+
       'managed.caption': 'Managed by AWR',
       'managed.idle': 'Nothing is in progress right now',
       'managed.here': 'This conversation is on',
@@ -154,6 +158,99 @@ window.__ModuleLoader__.load({
       'page.goal': 'Goal: {title}',
       'page.goals.more': ' and {n} more',
       'gauge.done': 'done',
+      'band.goal': 'The goal',
+      'band.goal.none': 'AWR has not settled on a goal yet',
+      'band.howfar': 'How far along',
+      'band.who': 'Whose turn',
+      'band.who.none': 'Nobody has work in hand',
+      'band.next': 'Next step',
+      'band.next.none': 'Nothing to move right now',
+      'band.cells': '{done} of {total} pieces of work done',
+      // How each figure is counted, written next to the figure itself: what a number means, not only what it says (DSH-079).
+      'tip.goal': 'The goal AWR reports as active. This page writes none of it.',
+      'tip.howfar': 'One cell per piece of work in the ledger: done over all, unweighted. It is not a completion rate for the goal, which AWR refuses to give.',
+      'tip.who': 'Who has taken a piece of work, as the ledger records it. A claim with no name recorded shows no name.',
+      'tip.next': 'The work AWR says to move next, and the first line it wrote for it.',
+      'tip.gauge': 'The whole bar is every piece of work in the ledger; each segment is one state. Nothing is dropped and nothing is weighted.',
+      'tip.done': 'Written up as finished, with its evidence in the ledger.',
+      'tip.active': 'Taken by a conversation and being worked on.',
+      'tip.blocked': 'Cannot move until something outside it changes.',
+      'tip.waiting': 'Held for a time or an event, not for a person.',
+      'tip.ready': 'Nothing is holding it; a conversation can take it.',
+      'tip.planned': 'Not started: what it waits for is not settled.',
+      'tip.cancelled': 'Dropped, and kept so the history stays whole.',
+      'tip.lane': 'One mainline: how many of its own pieces are done, over how many it has.',
+      'tip.acceptance': 'The conditions written down for this piece of work. AWR records no check mark against them.',
+      'tip.updated': 'When the file behind this page was last written, and whether a refresh is running.',
+      'gauge.caliber': 'Counts, not a completion rate: AWR refuses a blended percent',
+      'gauge.rest': '{n} counted by AWR that is not one of the states this page draws',
+      'needs.none': 'Nothing is stuck, nothing is waiting, and no goal is waiting to be confirmed.',
+      'empty.filter.body': 'The work is still there; this filter is just showing none of it.',
+      'empty.filter.clear': 'Clear the filter',
+      'lane.chip.tip': 'Show only this mainline; press again to let the others back',
+      'filter.shown': '{shown} of {total} shown',
+      'filter.query': 'Search “{q}”',
+      'filter.clear': 'Clear all',
+      'filter.clear.one': 'Remove this filter',
+      'working.title': 'Right now',
+      'tip.working': 'Every session AWR has open on this project and the work each one claimed. AWR knows a session is open; it does not know what is being typed this second.',
+      'working.count': '{n} open',
+      'working.empty': 'No session has any of this work claimed right now. A session appears here the moment it claims something.',
+      'working.more': '{n} more',
+      'working.unclaimed': 'An open session that claimed no work',
+      'working.since': 'from ledger revision {rev}',
+      'working.may.more': 'AWR says more sessions are open than it listed here.',
+      'activity.title': 'Ledger events',
+      'tip.activity': 'What AWR wrote down about this project, newest first. The ledger’s own history, not a chat log.',
+      'activity.count': '{n} events',
+      'activity.empty': 'This read of the ledger carries no events, so there is nothing to list — which is not a claim that nothing happened.',
+      'activity.unread': 'This awr does not hand the page its event history, so nothing is shown rather than something guessed.',
+      'activity.more': 'The page carries one bounded read; the ledger holds the rest.',
+      'activity.open': 'All events',
+      'activity.less': 'Fewer events',
+      'step.title': 'What you do now',
+      'step.why': 'Why it is on you',
+      'step.facts': 'What it moves',
+      'step.open': 'Open',
+      'step.whole': 'The whole step',
+      'step.held': 'In the hands of {who}',
+      'step.claimed': 'A conversation has taken it; AWR records no name',
+      'step.unheld': 'AWR records no claim, so nobody has it',
+      'step.unheld.tip': 'AWR has no active claim on this piece of work: nothing is lost, it is simply not taken yet.',
+      'step.blocked': 'Stuck on',
+      'step.wait': 'It waits for',
+      'step.checklist': 'It is finished when',
+      'step.checklist.unmarked': 'AWR keeps no check mark against these, so none is shown.',
+      'step.checklist.none': 'AWR has no acceptance criteria for this piece of work.',
+      'step.lane': 'Mainline {id}',
+      'step.lane.tip': 'How far this mainline is: done / total, from the ledger itself.',
+      'step.acceptance': '{n} done-when criteria',
+      'step.ledger': '{total} in the ledger, {done} done',
+      'step.basis': 'Why this line: {basis}',
+      'step.when': 'It applies while: {when}',
+      'step.recheck': 'Look again when: {recheck}',
+      'step.notpercent': 'AWR withholds a blended completion percent: {detail}',
+      'time.just': 'just now',
+      'time.min': '{n} min ago',
+      'time.hour': '{n} h ago',
+      'time.day': '{n} d ago',
+
+      'coverage.title': 'What this AWR can do',
+      'coverage.answered': '{n} of {total} answered',
+      'health.title': 'Is the project sound',
+      'health.ok': 'The project database is sound',
+      'health.schema': 'schema v{v}',
+      'health.issue.database': 'The project database does not report itself sound',
+      'health.issue.schema': 'The database does not match the shape this awr expects',
+      'health.issue.references': 'Some records point at things that are gone',
+      'health.issue.integrity': 'The integrity checks did not all pass',
+      'health.findings.title': 'The doctor found problems — its own words, untouched:',
+      'health.notok': 'The doctor withholds its sign-off and gave nothing the page can show',
+      'health.repair': 'AWR suggests: {r}',
+      'health.repair.hint': 'This page only reads — it changed nothing. `awr doctor repair` lists the safe repairs; each one applies only the single repair you name, preserving sources and artifact files.',
+      'accounting.title': 'Where the effort went',
+      'accounting.notyet': 'No number yet: AWR withholds this until an approved contract and verified observations exist.',
+
       'state.active': 'In progress',
       'state.blocked': 'Blocked',
       'state.ready': 'Ready',
@@ -184,6 +281,11 @@ window.__ModuleLoader__.load({
       'lane.finished': '{n} mainline(s) finished',
       'graph.loose': 'Work with no dependencies',
       'detail.next': 'Next',
+      'detail.wait': 'Why it waits',
+      'detail.wait.release': 'Unlocks when',
+      'detail.take': 'Take this on',
+      'detail.take.run': 'Claim it in this conversation',
+      'detail.take.busy': 'Claiming',
       'detail.blocker': 'Blocked by',
       'detail.outcomes': 'Done when',
       'detail.depends': 'Depends on',
@@ -197,6 +299,11 @@ window.__ModuleLoader__.load({
       'empty.failed.retry': 'Try again',
       'empty.nowork.title': 'No work is recorded yet',
       'empty.nowork.body': 'Once the agent records work in AWR, it shows up here',
+      'empty.source.title': 'The ledger cannot be read',
+      'empty.source.body': 'The page shows nothing because a source is broken, not because the project has no work. The banner above says what AWR reports.',
+      'sourceissues.title': 'The ledger source cannot be read — the counts may be missing work',
+      'sourceissues.hint': 'This is AWR reporting the problem itself, not an empty project:',
+      'sourceissues.fix': 'Run `awr intake inspect` to see the repair it suggests, then `awr source reindex` once the source is sound.',
       'empty.nomatch': 'No work matches',
       'empty.alldone': 'All work is done',
     }
@@ -252,6 +359,10 @@ window.__ModuleLoader__.load({
       'reason.locked': '另一个进程正在接管这个项目',
       'reason.too_broad': '这个文件夹范围太大，不适合当作一个项目',
       'reason.default': '遇到了意料之外的问题',
+
+      'digest.goal': '终极目标',
+      'digest.progress': '完成',
+      'digest.next': '下一步',
 
       'managed.caption': '由 AWR 管理',
       'managed.idle': '目前没有进行中的工作',
@@ -341,6 +452,99 @@ window.__ModuleLoader__.load({
       'page.goal': '目标：{title}',
       'page.goals.more': ' 等 {n} 个',
       'gauge.done': '已完成',
+      'band.goal': '目标是什么',
+      'band.goal.none': 'AWR 还没有定下目标',
+      'band.howfar': '离目标多远',
+      'band.who': '现在轮到谁',
+      'band.who.none': '还没有人接手',
+      'band.next': '下一步做什么',
+      'band.next.none': '暂时没有可推进的',
+      'band.cells': '{total} 项工作已完成 {done} 项',
+      // 每个数字的算法，写在数字旁边：先说这个数是什么意思，再说它等于多少（DSH-079）。
+      'tip.goal': 'AWR 报出的当前目标，这一格不替它写。',
+      'tip.howfar': '台账里一条工作一格：已完成 ÷ 全部，不加权。它不是目标完成率——AWR 明确拒绝给这个数。',
+      'tip.who': '台账登记的接手人。台账没登记的认领，这里不显示名字。',
+      'tip.next': 'AWR 判定下一个要推动的工作，以及它为它写的第一句。',
+      'tip.gauge': '整条是台账里的全部工作，每一段是一个状态：一项不落，也不加权。',
+      'tip.done': '台账记为已完成，并留有证据。',
+      'tip.active': '已被某个会话认领，正在做。',
+      'tip.blocked': '被它之外的条件卡住，条件不变就动不了。',
+      'tip.waiting': '在等时间或事件，不是在等人。',
+      'tip.ready': '没有东西卡着它，等一个会话认领。',
+      'tip.planned': '还没开始：它依赖的东西或它的目标还没定。',
+      'tip.cancelled': '已作废，但仍留在台账里，历史保持完整。',
+      'tip.lane': '一条主线：它自己的已完成条数 ÷ 它一共多少条。',
+      'tip.acceptance': '这条工作写明的完成条件。AWR 不记录勾选状态。',
+      'tip.updated': '这个页面背后的文件最后一次被写入的时间，以及是否正在刷新。',
+      'gauge.caliber': '这里只数条数，不给完成率：AWR 拒绝混合完成率。',
+      'gauge.rest': 'AWR 数到了 {n} 项，但不属于本页认识的任何一个状态',
+      'needs.none': '没有卡住的，没有等待的，也没有等着确认的目标。',
+      'empty.filter.body': '工作还在，只是这个筛子把它全筛掉了。',
+      'empty.filter.clear': '清空筛选',
+      'lane.chip.tip': '只看这条主线，再按一次放回其他主线',
+      'filter.shown': '现在显示 {shown} / {total}',
+      'filter.query': '搜索「{q}」',
+      'filter.clear': '全部清空',
+      'filter.clear.one': '去掉这个筛选',
+      'working.title': '此刻在做',
+      'tip.working': 'AWR 记下的、正在这个工程上开着的会话，以及各自认领了哪件事。AWR 只知道会话开着，不知道这一秒在敲什么。',
+      'working.count': '{n} 个会话开着',
+      'working.empty': '现在没有任何会话认领这个工程的工作。会话一认领就会出现在这里。',
+      'working.more': '还有 {n} 个',
+      'working.unclaimed': '一个没有认领工作的会话',
+      'working.since': '从台账 revision {rev} 起',
+      'working.may.more': 'AWR 说实际开着的会话不止列出的这些。',
+      'activity.title': '台账事件',
+      'tip.activity': 'AWR 为这个工程记下的事，最新在上。是台账自己的历史，不是聊天记录。',
+      'activity.count': '{n} 条事件',
+      'activity.empty': '这次读到的台账里没有事件，所以这里没有可列的东西——但这不代表什么都没发生。',
+      'activity.unread': '这台机器的 awr 没有把事件历史交给页面，所以这里什么都不显示，而不是编一个。',
+      'activity.more': '页面只带一次有界的读取，更早的还在台账里。',
+      'activity.open': '看全部事件',
+      'activity.less': '收起事件',
+      'step.title': '现在该做什么',
+      'step.why': '为什么轮到你',
+      'step.facts': '它推动什么',
+      'step.open': '打开',
+      'step.whole': '完整的一条',
+      'step.held': '在 {who} 手上',
+      'step.claimed': '有一段会话接手了，AWR 没有记下名字',
+      'step.unheld': 'AWR 里没有认领记录，还没人接手',
+      'step.unheld.tip': 'AWR 的 active_claims 是空的：不是丢了，是还没有人认领。',
+      'step.blocked': '卡在',
+      'step.wait': '它在等',
+      'step.checklist': '做到这些才算完',
+      'step.checklist.unmarked': 'AWR 不记录勾选状态，所以这里没有勾。',
+      'step.checklist.none': 'AWR 里没有这项工作的验收标准。',
+      'step.lane': '主线 {id}',
+      'step.lane.tip': '这条主线走到哪了：已完成 / 总数，直接来自台账。',
+      'step.acceptance': '验收标准 {n} 条',
+      'step.ledger': '台账共 {total} 项，已完成 {done} 项',
+      'step.basis': '为什么是这条线：{basis}',
+      'step.when': '什么时候算数：{when}',
+      'step.recheck': '什么时候再看：{recheck}',
+      'step.notpercent': 'AWR 拒绝给混合完成率：{detail}',
+      'time.just': '刚刚',
+      'time.min': '{n} 分钟前',
+      'time.hour': '{n} 小时前',
+      'time.day': '{n} 天前',
+
+      'coverage.title': '本机的 AWR 能做什么',
+      'coverage.answered': '{total} 项能力应答 {n} 项',
+      'health.title': '项目是否健康',
+      'health.ok': '项目数据库完好',
+      'health.schema': '表结构 v{v}',
+      'health.issue.database': '项目数据库没有报告自己完好',
+      'health.issue.schema': '数据库与本版本 awr 期望的结构不符',
+      'health.issue.references': '存在指向已消失记录的引用',
+      'health.issue.integrity': '完整性检查未全部通过',
+      'health.findings.title': '体检发现了问题 —— 以下是 AWR 原话，未做改写：',
+      'health.notok': '体检没有放行，且没有给出页面能展示的原因',
+      'health.repair': 'AWR 建议：{r}',
+      'health.repair.hint': '页面只做读取，什么都没改。`awr doctor repair` 列出安全的修复动作：只执行你点名的那一个，源文件与工件文件都会保留。',
+      'accounting.title': '投入核算',
+      'accounting.notyet': '暂时没有数字：合同批准、观测核实之前，AWR 拒绝给这个数——留白是真的。',
+
       'state.active': '进行中',
       'state.blocked': '受阻',
       'state.ready': '可开始',
@@ -371,6 +575,11 @@ window.__ModuleLoader__.load({
       'lane.finished': '{n} 条主线已全部完成',
       'graph.loose': '没有依赖关系的工作',
       'detail.next': '下一步',
+      'detail.wait': '为什么在等',
+      'detail.wait.release': '解锁条件',
+      'detail.take': '接手这项工作',
+      'detail.take.run': '在本会话接手',
+      'detail.take.busy': '接手中',
       'detail.blocker': '卡在哪',
       'detail.outcomes': '完成标准',
       'detail.depends': '依赖',
@@ -384,6 +593,11 @@ window.__ModuleLoader__.load({
       'empty.failed.retry': '重试',
       'empty.nowork.title': '还没有登记任何工作',
       'empty.nowork.body': '让 agent 把要做的事记到 AWR 里，这里就会出现',
+      'empty.source.title': '台账读不出来',
+      'empty.source.body': '页面空白是因为台账源损坏，不是项目没有工作。上方横幅里有 AWR 的原始报错。',
+      'sourceissues.title': '台账源读不出来 —— 下面的计数可能缺工作项',
+      'sourceissues.hint': '这是 AWR 自己的报错，不是项目空了：',
+      'sourceissues.fix': '在终端运行 `awr intake inspect` 查看修复指引，修好后运行 `awr source reindex`。',
       'empty.nomatch': '没有匹配的工作',
       'empty.alldone': '所有工作都已完成',
     }
@@ -452,7 +666,7 @@ window.__ModuleLoader__.load({
     }
 
     /** The colour of a work state. One meaning everywhere: the header light, the rows, the cards, the gauge. */
-    const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.text, cancelled: C.faint, good: C.good }
+    const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.good, cancelled: C.faint, good: C.good }
     /** The order a person looks at work in: what moves, what is stuck, what could start, what waits, what is not begun. */
     const STATE_ORDER = ['active', 'blocked', 'ready', 'waiting', 'planned', 'done', 'cancelled']
 
@@ -626,6 +840,16 @@ window.__ModuleLoader__.load({
       const date = new Date(ms)
       return Number.isFinite(date.getTime()) ? `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : ''
     }
+    /** When something happened, in the distance a person is standing at: minutes, then hours, then days. */
+    const ago = (ms, t) => {
+      if (!Number.isFinite(ms)) return ''
+      const mins = Math.floor((Date.now() - ms) / 60000)
+      if (mins < 1) return t('time.just')
+      if (mins < 60) return t('time.min', { n: mins })
+      const hours = Math.floor(mins / 60)
+      if (hours < 24) return t('time.hour', { n: hours })
+      return t('time.day', { n: Math.floor(hours / 24) })
+    }
 
     // ---- client/30-data.js ----
     // The data of the surfaces, read from the files the host writes.
@@ -771,7 +995,7 @@ window.__ModuleLoader__.load({
       const read = React.useCallback(async () => {
         const payload = await readData(ctx, sessionId, '.progress')
         // A view written by another version of the plugin is treated as no view: the host is asked to write it again.
-        if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 1 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
+        if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 2 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
         setProgress((current) => (current && current.updatedAt === payload.updatedAt ? current : payload))
         setError(undefined)
         return payload
@@ -826,6 +1050,23 @@ window.__ModuleLoader__.load({
       }, [enabled, ctx, sessionId, read, ask])
 
       return { progress, error, working, ask }
+    }
+
+    /**
+     * The progress digest for the card: one silent read when the card opens, no command, no poll.
+     * Nothing shows until the host has written a view this version reads — the Progress tab is what asks for one.
+     */
+    function useProgressDigest(ctx, sessionId, enabled) {
+      const [digest, setDigest] = React.useState(undefined)
+      React.useEffect(() => {
+        if (!enabled) { setDigest(undefined); return undefined }
+        let live = true
+        readData(ctx, sessionId, '.progress').then((payload) => {
+          if (live && payload?.ok && payload.schema === 2 && Array.isArray(payload.nodes)) setDigest(payload)
+        }, () => {})
+        return () => { live = false }
+      }, [ctx, sessionId, enabled])
+      return digest
     }
 
     // ---- client/40-popover.js ----
@@ -921,8 +1162,22 @@ window.__ModuleLoader__.load({
         failure ? h('p', { style: { ...P.note, color: C.bad }, 'data-testid': 'awr-failure' }, failure) : null)
     }
 
+    /** What the person asked of the project: the goal, how far it has come, and the next move — from the same view the Progress tab draws. */
+    function DigestBlock({ digest, t }) {
+      if (!digest || (!digest.goal && !digest.next)) return null
+      const row = (label, value, testId) => h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8 } },
+        h('span', { style: { ...P.label, flex: '0 0 auto' } }, label),
+        h('span', { 'data-testid': testId, className: 'awr-clamp1', style: { minWidth: 0, color: C.text } }, value))
+      return h('div', { 'data-testid': 'awr-digest', style: { display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 12, marginBottom: 12, borderBottom: `.5px solid ${C.line2}` } },
+        digest.goal?.title ? row(t('digest.goal'), digest.goal.title, 'awr-digest-goal') : null,
+        digest.counts ? h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8 } },
+          h('span', { style: { ...P.label, flex: '0 0 auto' } }, t('digest.progress')),
+          h('span', { 'data-testid': 'awr-digest-count', style: { fontVariantNumeric: 'tabular-nums', color: C.text } }, `${digest.counts.done} / ${digest.counts.total}`)) : null,
+        digest.next?.text ? row(t('digest.next'), digest.next.text, 'awr-digest-next') : null)
+    }
+
     /** A project AWR manages: how it stands, what this conversation is on, and what needs the person. */
-    function ManagedBlock({ view, work, t }) {
+    function ManagedBlock({ view, work, t, digest }) {
       // AWR lists a few of the work in each queue and counts all of it: the counts are shown, the lists say which.
       const totals = work?.totals ?? {}
       const counts = [['active', totals.active ?? work?.in_progress?.length ?? 0], ['ready', totals.ready ?? work?.ready?.length ?? 0], ['held', totals.blocked ?? work?.blocked?.length ?? 0]]
@@ -943,6 +1198,7 @@ window.__ModuleLoader__.load({
       const more = setup ? Math.max(0, stuck.length - 2) : Math.max(0, (totals.blocked ?? blocked.length) - listed.length)
       const receipt = view.state === 'completed' ? view.receipt : undefined
       return h('div', { 'data-testid': 'awr-managed' },
+        h(DigestBlock, { digest, t }),
         receipt ? h('p', { style: { ...P.body, margin: '0 0 12px' }, 'data-testid': 'awr-done' }, h('span', { style: { color: C.text, fontWeight: 500 } }, t('done.title')), ' · ', t('done.body', { goals: receipt.organization?.goalTotal ?? 0, gaps: receipt.organization?.gapTotal ?? 0 })) : null,
         work
           ? h('div', { 'data-testid': 'awr-counts', style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' } },
@@ -975,7 +1231,7 @@ window.__ModuleLoader__.load({
       const bound = work?.bound_work
       const files = (label, items, render) => (items?.length ? h('div', { style: { marginTop: 8 } },
         h('div', { style: P.label }, label),
-        ...items.map((item, index) => h('div', { key: index, style: { fontFamily: C.mono, fontSize: 11.5, lineHeight: '18px', color: C.text2, wordBreak: 'break-all' } }, render(item)))) : null)
+        ...items.map((item, index) => h('div', { key: index, style: { fontFamily: C.mono, fontSize: 12, lineHeight: '18px', color: C.text2, wordBreak: 'break-all' } }, render(item)))) : null)
       return h('div', { 'data-testid': 'awr-tech', style: { display: 'flex', flexDirection: 'column', gap: 2 } },
         h(Fact, { label: t('tech.project'), value: view.projectRoot }),
         h(Fact, { label: t('tech.revision'), value: work?.project?.revision }),
@@ -1160,9 +1416,12 @@ window.__ModuleLoader__.load({
       }
 
       const light = lightOf(data)
-      const button = h('button', { ref: trigger, id: 'awr-header-action', type: 'button', className: 'awr-chip', title: t('chip.title'), 'aria-label': t('chip.title'), 'aria-haspopup': 'dialog', 'aria-expanded': open, onClick: toggle },
+      // The digest is read once when the card opens on a managed project: it costs the conversation nothing.
+      const digest = useProgressDigest(ctx, sessionId, view && (view.state === 'initialized' || view.state === 'completed') ? (open ? 'open' : 'idle') : false)
+      const button = h('button', { ref: trigger, id: 'awr-header-action', type: 'button', className: 'awr-chip', title: digest?.next?.text ? `${t('chip.title')} — ${digest.next.text}` : t('chip.title'), 'aria-label': t('chip.title'), 'aria-haspopup': 'dialog', 'aria-expanded': open, onClick: toggle },
         h('span', { 'data-testid': 'awr-dot', 'data-state': view?.state ?? (error ? 'unavailable' : 'loading'), style: { display: 'inline-flex' } }, h(Light, { state: light.state, size: 7, pulse: light.pulse })),
-        t('chip.label'))
+        t('chip.label'),
+        digest?.counts?.total ? h('span', { 'data-testid': 'awr-chip-count', style: { fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${digest.counts.done}/${digest.counts.total}`) : null)
       if (!open || !anchor) return button
 
       const managed = view && (view.state === 'initialized' || view.state === 'completed')
@@ -1177,7 +1436,7 @@ window.__ModuleLoader__.load({
       }
       if (view) {
         body.push(managed
-          ? h(ManagedBlock, { key: 'managed', view, work: data.work ?? undefined, t })
+          ? h(ManagedBlock, { key: 'managed', view, work: data.work ?? undefined, t, digest })
           : h(TakeoverBlock, { key: 'takeover', view, t, busy, onStart: start, failure, installer: data.installer ?? undefined, onRuntime: () => installRuntime(true), runtimeBusy: runtime?.phase === 'applying' }))
         body.push(h('hr', { key: 'rule', style: P.rule }))
         body.push(h(UpdateLine, { key: 'update', plugin: data.plugin ?? undefined, t, busy: busy || update?.phase === 'applying', onCheck: checkUpdate, onApply: applyUpdate, canApply: Boolean(host?.manager), status: update }))
@@ -1381,48 +1640,315 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * The gauge: one bar for the whole project. The inked part is done; what is being worked on is lit; the rest is in the
-     * order a person would ask about it. The legend counts each state and filters the work when pressed.
+     * An empty place, named as one of the three kinds of empty there are (DSH-079): nothing has been written yet,
+     * something is broken so nothing can be read, or this cut of the work happens to be empty. Each says why it is empty
+     * and what would fill it, so an empty page is never read as a finished project — or as a working one.
+     */
+    function EmptyState({ kind = 'none', testid, reason, action, dense, t }) {
+      const copy = { none: ['empty.nowork.title', 'empty.nowork.body'], broken: ['empty.source.title', 'empty.source.body'], filtered: ['empty.nomatch', 'empty.filter.body'] }[kind]
+      return h('div', {
+        ...(testid ? { 'data-testid': testid } : {}),
+        ...(reason ? { 'data-reason': reason } : {}),
+        'data-empty': kind,
+        style: dense ? { padding: '28px 0 4px' } : { maxWidth: 420, margin: '72px auto 0' },
+      },
+      h('p', { style: P.title }, t(copy[0])),
+      h('p', { style: P.body }, t(copy[1])),
+      action ? h('div', { style: { marginTop: 12 } }, h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', 'data-testid': 'awr-empty-clear', onClick: action }, t('empty.filter.clear'))) : null)
+    }
+
+    /**
+     * The four questions asked when someone opens the page, answered before anything else: what is the goal, how far it
+     * is, whose turn it is, what happens next. The distance is told one cell per piece of work, never an invented rate.
+     * Every number carries how it is counted, because a number without its 口径 is a guess with better typography.
+     */
+    function GoalBand({ progress, nodes, t, onPick }) {
+      const counts = progress.counts ?? {}
+      const total = counts.total || 0
+      const who = [...new Set(nodes.filter((node) => node.claimedBy).map((node) => node.claimedBy))]
+      const label = (title, tip) => h('div', { title: tip, style: { fontSize: 12, lineHeight: '16px', color: C.text3, marginBottom: 6 } }, title)
+      const none = h('span', { style: { color: C.text3 } }, t('band.goal.none'))
+      return h('div', { 'data-testid': 'awr-goalband', style: { marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px 28px', padding: '18px 0 20px', borderTop: `.5px solid ${C.line2}`, borderBottom: `.5px solid ${C.line2}` } },
+        h('div', { 'data-cell': 'goal', style: { minWidth: 0 } }, label(t('band.goal'), t('tip.goal')),
+          h('div', { style: { fontSize: 14, lineHeight: '20px', color: progress.goal ? C.text : C.text3 } }, progress.goal?.title || none)),
+        h('div', { 'data-cell': 'howfar', style: { minWidth: 0 } }, label(t('band.howfar'), t('tip.howfar')),
+          h('span', { style: { fontSize: 22, lineHeight: '28px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done ?? 0),
+          h('span', { style: { fontSize: 12, lineHeight: '28px', color: C.text3, fontVariantNumeric: 'tabular-nums', marginLeft: 6 } }, `/ ${total} ${t('gauge.done')}`),
+          h('div', { role: 'img', 'aria-label': t('band.cells', { done: counts.done ?? 0, total }), style: { display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 6 } },
+            ...nodes.map((node) => h('span', { key: node.key, title: `${node.key} · ${node.title}`, style: { width: 6, height: 12, borderRadius: 2, background: STATE_COLOR[node.state] ?? C.idle, opacity: node.state === 'planned' || node.state === 'cancelled' ? 0.3 : 0.9 } })))),
+        h('div', { 'data-cell': 'who', style: { minWidth: 0 } }, label(t('band.who'), t('tip.who')),
+          who.length
+            ? h('div', { style: { fontSize: 14, lineHeight: '20px', color: C.text, wordBreak: 'break-word' } }, who.join(' · '))
+            : h('div', { style: { fontSize: 14, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.who.none')))),
+        h('div', { 'data-cell': 'next', style: { minWidth: 0 } }, label(t('band.next'), t('tip.next')),
+          progress.next?.text
+            ? h('button', { type: 'button', className: 'awr-link', 'id': 'awr-band-next', title: progress.next.text, style: { textAlign: 'left', fontSize: 13, lineHeight: '20px', color: C.text }, onClick: () => onPick(progress.next.key) },
+              h('span', { className: 'awr-clamp2' }, progress.next.headline ?? progress.next.text))
+            : h('div', { style: { fontSize: 13, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.next.none')))))
+    }
+
+    /**
+     * The gauge: one bar for the whole project, measured against the whole ledger so the eye cannot be fooled by a bar
+     * that only draws what has happened. Work that has not started is hatched, not inked, and work AWR counted but this
+     * page has no colour for is hatched too rather than dropped. The counts are the fact; the bar is the shape of it.
+     * No percentage is printed here, because AWR refuses a blended completion rate — see `accounting` in the footer.
      */
     function Gauge({ counts, t, only, onOnly }) {
       const total = counts.total || 0
-      const parts = ['done', 'active', 'blocked', 'waiting', 'ready', 'planned'].map((state) => ({ state, value: counts[state] ?? 0 })).filter((part) => part.value > 0)
-      const percent = total ? Math.round((counts.done / total) * 100) : 0
+      const known = ['done', 'active', 'blocked', 'waiting', 'ready', 'planned']
+      const parts = known.map((state) => ({ state, value: counts[state] ?? 0 })).filter((part) => part.value > 0)
+      const drawn = parts.reduce((sum, part) => sum + part.value, 0)
+      const baseline = Math.max(total, drawn)
+      // Anything AWR counted that this page does not draw (cancelled, or a state newer than this plugin) keeps its width.
+      const rest = Math.max(0, baseline - drawn)
+      // Work that has not started is drawn as a hatch, not as ink, so an untouched reserve never reads as progress.
+      const hatch = `repeating-linear-gradient(45deg, ${C.faint} 0 2px, transparent 2px 5px)`
+      const segment = (state, value) => h('span', {
+        key: state, 'data-part': state, title: `${t(`state.${state}`)} ${value} · ${t(`tip.${state}`)}`,
+        style: { width: `${baseline ? (value / baseline) * 100 : 0}%`, minWidth: value ? 3 : 0, background: state === 'planned' || state === 'ready' ? hatch : STATE_COLOR[state], opacity: only && only !== state ? 0.25 : 1, transition: `opacity .16s ${C.ease}` },
+      })
       return h('div', { 'data-testid': 'awr-gauge' },
         h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 } },
           h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8 } },
-            h('span', { style: { fontSize: 28, lineHeight: '32px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done),
-            h('span', { style: { fontSize: 13, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `/ ${total} ${t('gauge.done')}`)),
-          h('span', { style: { fontSize: 13, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${percent}%`)),
-        h('div', { role: 'img', 'aria-label': `${counts.done} / ${total} ${t('gauge.done')}`, style: { display: 'flex', gap: 2, height: 8, margin: '12px 0', borderRadius: 4, overflow: 'hidden', background: total ? 'transparent' : C.active } },
-          ...parts.map((part) => h('span', { key: part.state, 'data-part': part.state, title: `${t(`state.${part.state}`)} ${part.value}`, style: { flex: `${part.value} 0 0`, minWidth: 3, background: part.state === 'planned' ? C.active : part.state === 'ready' ? C.faint : STATE_COLOR[part.state], opacity: only && only !== part.state ? 0.25 : 1, transition: `opacity .16s ${C.ease}` } }))),
+            h('span', { title: t('tip.done'), style: { fontSize: 28, lineHeight: '32px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done),
+            h('span', { title: t('tip.howfar'), style: { fontSize: 13, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `/ ${total} ${t('gauge.done')}`)),
+          h('span', { 'data-testid': 'awr-gauge-caliber', title: t('tip.gauge'), style: { fontSize: 12, lineHeight: '18px', color: C.text3, textAlign: 'right' } }, t('gauge.caliber'))),
+        h('div', { role: 'img', 'aria-label': `${counts.done} / ${total} ${t('gauge.done')}`, title: t('tip.gauge'), style: { display: 'flex', gap: 2, height: 8, margin: '12px 0', borderRadius: 4, overflow: 'hidden', background: total ? 'transparent' : C.active } },
+          ...parts.map((part) => segment(part.state, part.value)),
+          rest ? h('span', { key: '~rest', 'data-part': 'rest', title: `${t('gauge.rest', { n: rest })} · ${t('tip.cancelled')}`, style: { width: `${(rest / baseline) * 100}%`, minWidth: 3, background: hatch, opacity: only ? 0.25 : 1 } }) : null),
         h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4, margin: '0 -8px' } },
-          ...['active', 'blocked', 'waiting', 'ready', 'planned', 'done'].filter((state) => (counts[state] ?? 0) > 0).map((state) => h('button', { key: state, type: 'button', className: 'awr-legend', 'data-legend': state, 'aria-pressed': only === state, 'data-off': only && only !== state ? 'true' : undefined, onClick: () => onOnly(only === state ? undefined : state) },
+          ...['active', 'blocked', 'waiting', 'ready', 'planned', 'done'].filter((state) => (counts[state] ?? 0) > 0).map((state) => h('button', { key: state, type: 'button', className: 'awr-legend', 'data-legend': state, 'aria-pressed': only === state, 'data-off': only && only !== state ? 'true' : undefined, title: `${t(`state.${state}`)} · ${t(`tip.${state}`)}`, onClick: () => onOnly(only === state ? undefined : state) },
             h(Light, { state }), t(`state.${state}`), h('span', { style: { color: C.text3, fontVariantNumeric: 'tabular-nums' } }, counts[state])))))
     }
 
-    /** What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request. */
+    /**
+     * What this AWR can do, from its own negotiation: how many of the capabilities it declares this machine answers, and
+     * each domain of them. A domain that answers less than it declares is the gap, shown in the colour of a problem.
+     */
+    function Coverage({ coverage, t }) {
+      if (!coverage) return null
+      return h('div', { 'data-testid': 'awr-coverage', style: { minWidth: 0 } },
+        h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' } },
+          h('div', { style: P.label }, t('coverage.title')),
+          h('span', { style: { fontSize: 12, lineHeight: '16px', color: coverage.available < coverage.total ? C.bad : C.text3, fontVariantNumeric: 'tabular-nums' } },
+            t('coverage.answered', { n: coverage.available, total: coverage.total }))),
+        h('div', { style: { fontSize: 22, lineHeight: '28px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text, marginTop: 6 } },
+          `${coverage.available} / ${coverage.total}`,
+          coverage.cliVersion ? h('span', { style: { fontSize: 12, lineHeight: '28px', fontWeight: 400, color: C.text3, marginLeft: 8 } }, `awr ${coverage.cliVersion}`) : null),
+        h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 } },
+          ...(coverage.groups ?? []).map((group) => h('span', { key: group.id, 'data-testid': 'awr-coverage-group', title: `${group.id} ${group.available} / ${group.total}`, style: { fontSize: 12, lineHeight: '18px', padding: '0 8px', borderRadius: 999, border: `.5px solid ${group.available < group.total ? C.bad : C.line2}`, color: group.available < group.total ? C.bad : C.text2, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' } },
+            group.id, ' ', `${group.available}/${group.total}`))))
+    }
+
+    /** How the project's own database stands, from `awr doctor`: what it says, in the words it means. */
+    /** The source complaint banner (DSH-078): a ledger AWR cannot read is shown as broken, never as an empty page. */
+    function SourceIssues({ issues, t }) {
+      if (!issues || !issues.length) return null
+      return h('div', { 'data-testid': 'awr-source-issues', role: 'alert', style: { marginTop: 16, border: `.5px solid ${C.bad}`, borderRadius: 10, padding: '12px 16px', minWidth: 0 } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 6 } },
+          h(Light, { state: 'blocked', size: 7 }),
+          h('span', { style: { fontSize: 13, fontWeight: 600, lineHeight: '20px', color: C.bad } }, t('sourceissues.title'))),
+        h('div', { style: { marginTop: 6, fontSize: 12.5, lineHeight: '18px', color: C.text2 } }, t('sourceissues.hint')),
+        h('ul', { style: { margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 6, minWidth: 0 } },
+          ...issues.map((issue, index) => h('li', { key: index, style: { fontSize: 12.5, lineHeight: '18px', color: C.text2, wordBreak: 'break-word' } },
+            h('code', { style: { fontSize: 12, color: C.bad, marginRight: 6 } }, issue.code), issue.message))),
+        h('div', { style: { marginTop: 10, fontSize: 12.5, lineHeight: '18px', color: C.text2 } }, t('sourceissues.fix')))
+    }
+
+    function Health({ health, t }) {
+      if (!health) return null
+      const ISSUE = { database: 'health.issue.database', schema: 'health.issue.schema', references: 'health.issue.references', integrity: 'health.issue.integrity' }
+      // A doctor finding is AWR's own diagnosis — the code and sentence stay exactly as the doctor wrote them.
+      const SEVERITY = { error: { light: 'blocked', color: C.bad }, warning: { light: 'ready', color: C.warn ?? C.bad }, info: { light: 'planned', color: C.text3 } }
+      const findings = health.findings ?? []
+      return h('div', { 'data-testid': 'awr-health', style: { minWidth: 0 } },
+        h('div', { style: P.label }, t('health.title')),
+        h('div', { style: { marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 } },
+          health.ok ? h('div', { style: { display: 'flex', alignItems: 'center', gap: 6 } },
+            h(Light, { state: 'done', size: 7 }),
+            h('span', { style: { fontSize: 14, lineHeight: '20px', color: C.text } }, t('health.ok')),
+            Number.isFinite(health.schemaVersion) ? h('span', { style: { fontSize: 12, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null)
+            : h('div', { style: { display: 'flex', flexDirection: 'column', gap: 4 } },
+              ...health.issues.map((issue) => h('div', { key: issue, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '20px', color: C.bad } },
+                h(Light, { state: 'blocked', size: 7 }), t(ISSUE[issue] ?? 'health.issue.database'))),
+              health.issues.length === 0 && findings.length ? h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.bad } }, t('health.findings.title')) : null,
+              health.issues.length === 0 && !findings.length ? h('div', { style: { display: 'flex', alignItems: 'center', gap: 6 }, key: 'notok' },
+                h(Light, { state: 'blocked', size: 7 }), h('span', { style: { fontSize: 13, lineHeight: '20px', color: C.bad } }, t('health.notok'))) : null,
+              Number.isFinite(health.schemaVersion) ? h('div', { style: { fontSize: 12, lineHeight: '18px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null),
+          ...findings.map((finding, index) => {
+            const look = SEVERITY[finding.severity] ?? SEVERITY.error
+            return h('div', { key: index, title: finding.message, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '20px', color: look.color, minWidth: 0 } },
+              h(Light, { state: look.light, size: 7 }),
+              h('code', { style: { fontSize: 12, wordBreak: 'break-word' } }, finding.code),
+              finding.count > 1 ? h('span', { style: { fontVariantNumeric: 'tabular-nums' } }, `× ${finding.count}`) : null,
+              finding.repair ? h('span', { style: { fontSize: 12, color: C.text3 } }, t('health.repair', { r: `awr doctor repair ${finding.repair.replaceAll('_', '-')}` })) : null)
+          }),
+          findings.some((finding) => finding.severity === 'error') ? h('div', { style: { fontSize: 12, lineHeight: '18px', color: C.text2 } }, t('health.repair.hint')) : null))
+    }
+
+    /** The honesty box: AWR withholds an effort number until it has an approved contract and verified observations. What it does say is passed through as said. */
+    function AccountingFacts({ accounting, t }) {
+      if (!accounting) return null
+      return h('div', { 'data-testid': 'awr-accounting', style: { minWidth: 0 } },
+        h('div', { style: P.label }, t('accounting.title')),
+        accounting.available === true
+          ? h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '2px 16px', marginTop: 6, fontSize: 13, lineHeight: '20px', color: C.text, fontVariantNumeric: 'tabular-nums' } },
+            ...Object.entries(accounting).filter(([key, value]) => key !== 'available' && (typeof value === 'number' || typeof value === 'string')).map(([key, value]) => h('span', { key }, `${key} ${value}`)))
+          : h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 6 } },
+            h('span', { style: { transform: 'translateY(6px)' } }, h(Light, { state: 'waiting', size: 7 })),
+            h('span', { title: accounting.detail ? `${accounting.reason ?? ''} ${accounting.detail}` : undefined, style: { fontSize: 13, lineHeight: '20px', color: C.text2, minWidth: 0 } }, t('accounting.notyet'))))
+    }
+
+    /**
+     * The next step, told in the three layers a person reads: the sentence to act on, why it is on them, and what it
+     * moves. The line, the reason and the numbers are AWR's words and AWR's counts; a fact AWR does not have leaves its
+     * row out instead of being filled in.
+     */
+    function NextStep({ next, guidance, accounting, counts, t, onPick }) {
+      if (!next) return null
+      const links = Array.isArray(next.links) ? next.links : []
+      const checklist = Array.isArray(next.checklist) ? next.checklist : []
+      const notPercent = accounting && accounting.available !== true && typeof accounting.detail === 'string' ? accounting.detail.trim() : ''
+      const chips = []
+      if (next.lane) chips.push({ key: 'lane', tip: t('step.lane.tip'), text: `${t('step.lane', { id: next.lane.id })} ${next.lane.done} / ${next.lane.total}` })
+      if (counts?.total) chips.push({ key: 'ledger', text: t('step.ledger', { total: counts.total, done: counts.done ?? 0 }) })
+      if (checklist.length) chips.push({ key: 'acceptance', text: t('step.acceptance', { n: checklist.length }) })
+      // The reason it is on you: what it is stuck on, what it waits for, and failing both, who has it. An older host
+      // gives only the line, which for stuck and waiting work is exactly that reason.
+      const held = next.claimedBy ? t('step.held', { who: next.claimedBy }) : next.claimed ? t('step.claimed') : t('step.unheld')
+      const stuck = next.blocker ?? (next.state === 'blocked' ? next.text : undefined)
+      const waits = next.wait ? (next.wait.release ? `${next.wait.summary} — ${next.wait.release}` : next.wait.summary) : next.state === 'waiting' ? next.text : undefined
+      const why = stuck ?? waits ?? held
+      const box = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 8px', borderRadius: 6, background: C.raised, color: C.text2, fontSize: 12, lineHeight: '18px', fontVariantNumeric: 'tabular-nums' }
+      return h('section', { 'data-testid': 'awr-nextstep', style: { marginTop: 20, padding: '16px 18px', border: `.5px solid ${C.line2}`, borderRadius: 12, background: C.surface } },
+        h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 } },
+          h('div', { style: P.label }, t('step.title')),
+          next.changedAt ? h('div', { 'data-testid': 'awr-nextstep-when', title: clock(next.changedAt), style: { fontSize: 12, lineHeight: '16px', color: C.faint, fontVariantNumeric: 'tabular-nums', flex: 'none' } }, ago(next.changedAt, t)) : null),
+        h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8 } },
+          h('span', { style: { marginTop: 6, flex: 'none' } }, h(Light, { state: next.state })),
+          h('button', { type: 'button', id: 'awr-nextstep-open', className: 'awr-link', style: { textAlign: 'left', fontSize: 16, lineHeight: '24px', fontWeight: 500, color: C.text }, onClick: () => onPick(next.key) },
+            next.headline ?? h('span', { className: 'awr-clamp2' }, next.text))),
+        links.length
+          ? h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 6, paddingLeft: 19 } },
+            ...links.map((link) => h('a', { key: link, href: link, target: '_blank', rel: 'noreferrer', title: link, style: { fontSize: 12, lineHeight: '18px', color: C.text2, overflowWrap: 'anywhere' } }, link.replace(/^https?:\/\//, ''))))
+          : null,
+        h('div', { style: { marginTop: 12 } }, h('div', { style: P.label }, stuck ? t('step.blocked') : waits ? t('step.wait') : t('step.why'))),
+        h('div', { 'data-testid': 'awr-nextstep-why', style: { display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 4, fontSize: 13, lineHeight: '20px', color: stuck ? C.warn : C.text2 } },
+          h('span', { style: { minWidth: 0 } }, why),
+          stuck || waits ? null : h('span', { title: next.claimedBy || next.claimed ? undefined : t('step.unheld.tip'), style: { color: C.faint, cursor: 'help' } }, 'ⓘ')),
+        notPercent
+          ? h('div', { title: notPercent, style: { marginTop: 8, padding: '6px 8px', borderRadius: 6, background: C.code, color: C.text3, fontFamily: C.mono, fontSize: 11, lineHeight: '16px', overflowWrap: 'anywhere' } }, notPercent)
+          : null,
+        h('div', { style: P.rule }),
+        h('div', { style: P.label }, t('step.facts')),
+        h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 } }, ...chips.map((chip) => h('span', { key: chip.key, title: chip.tip, style: box }, chip.text))),
+        checklist.length
+          ? h('div', { style: { marginTop: 10 } },
+            h('div', { style: { ...P.label, marginBottom: 4 }, title: t('tip.acceptance') }, t('step.checklist')),
+            h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 4 } },
+              ...checklist.map((item) => h('li', { key: item, style: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, lineHeight: '20px', color: C.text2 } },
+                h('span', { 'data-check': 'unmarked', style: { width: 10, height: 10, flex: 'none', marginTop: 5, borderRadius: 2, border: `.5px solid ${C.faint}` } }),
+                h('span', { style: { minWidth: 0 } }, item)))),
+            h('div', { style: { marginTop: 6, fontSize: 12, lineHeight: '18px', color: C.faint } }, t('step.checklist.unmarked')))
+          : h('div', { style: { marginTop: 10, fontSize: 12, lineHeight: '18px', color: C.text3 } }, t('step.checklist.none')),
+        next.headline && next.headline !== next.text
+          ? h('div', { style: { marginTop: 12 } }, h(Fold, { label: t('step.whole') }, h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text2, overflowWrap: 'anywhere' } }, next.text)))
+          : null,
+        guidance
+          ? h('div', { style: { marginTop: 12, paddingTop: 10, borderTop: `.5px solid ${C.line}`, fontSize: 12, lineHeight: '18px', color: C.text3, display: 'grid', gap: 2 } },
+            h('div', { 'data-testid': 'awr-nextstep-basis' }, t('step.basis', { basis: guidance.basis })),
+            guidance.when || guidance.recheck
+              ? h('div', null, [guidance.when ? t('step.when', { when: guidance.when }) : undefined, guidance.recheck ? t('step.recheck', { recheck: guidance.recheck }) : undefined].filter(Boolean).join(' · '))
+              : null)
+          : null)
+    }
+
+    /**
+     * What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request.
+     * A section that is empty says so out loud — a vanished section is read as good news, an honest line is read as fact.
+     */
     function Needs({ items, t, onPick }) {
       const [all, setAll] = React.useState(false)
-      if (!items.length) return null
       const shown = all ? items : items.slice(0, 3)
       return h('div', { 'data-testid': 'awr-page-needs', style: { marginTop: 24 } },
         h('div', { style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } }, t('needs.title'), h('span', { style: { marginLeft: 6, color: C.text3, fontWeight: 400, fontVariantNumeric: 'tabular-nums' } }, items.length)),
         h('div', { style: { marginTop: 4, borderTop: `.5px solid ${C.line2}` } },
-          ...shown.map((item, index) => h(item.key ? 'button' : 'div', {
+          ...(items.length ? shown.map((item, index) => h(item.key ? 'button' : 'div', {
             key: `${item.kind}:${item.key ?? index}`,
             ...(item.key ? { type: 'button', className: 'awr-link', onClick: () => onPick(item.key) } : {}),
             style: { display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', padding: '8px 0', borderBottom: `.5px solid ${C.line2}`, borderRadius: 0, fontSize: 13, lineHeight: '20px', color: C.text },
           },
-          h('span', { style: { transform: 'translateY(-1px)' } }, h(Light, { state: item.kind === 'blocked' ? 'blocked' : 'waiting' })),
+          h('span', { style: { transform: 'translateY(-1px)' } }, h(Light, { state: item.kind === 'blocked' || item.kind === 'finding' ? 'blocked' : 'waiting' })),
           h('span', { style: { minWidth: 0, flex: 1 } },
             h('span', { className: 'awr-clamp1', style: { display: 'block' } }, item.title),
-            h('span', { className: 'awr-clamp2', style: { fontSize: 12, lineHeight: '18px', color: C.text3 } }, item.kind === 'blocked' ? (item.detail || t('needs.blocked')) : item.kind === 'setup' ? item.detail : t('needs.goal')))))),
+            h('span', { className: 'awr-clamp2', style: { fontSize: 12, lineHeight: '18px', color: C.text3 } }, item.kind === 'blocked' ? (item.detail || t('needs.blocked')) : item.kind === 'setup' || item.kind === 'finding' ? item.detail : t('needs.goal')))))
+            : [h('div', { key: 'none', 'data-testid': 'awr-needs-none', style: { padding: '8px 0', ...P.note } }, t('needs.none'))])),
         items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('needs.less') : t('needs.more', { n: items.length - 3 })) : null)
     }
 
+    /**
+     * Who has their hands on the work right now (DSH-079 P1). AWR knows a session is open and which work it claimed; it does
+     * not know what a person is doing this second, so the strip says whose turn it is, since when, and nothing else. A session
+     * that claimed nothing is named as one instead of being left out, because a missing row reads as nobody working.
+     */
+    function Working({ working, t, onPick }) {
+      const [all, setAll] = React.useState(false)
+      const items = working?.items ?? []
+      const shown = all ? items : items.slice(0, 3)
+      return h('div', { 'data-testid': 'awr-page-working', style: { marginTop: 24 } },
+        h('div', { style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } },
+          h('span', { title: t('tip.working') }, t('working.title')),
+          h('span', { style: { marginLeft: 6, color: C.text3, fontWeight: 400, fontVariantNumeric: 'tabular-nums' } }, t('working.count', { n: items.length }))),
+        h('div', { style: { marginTop: 4, borderTop: `.5px solid ${C.line2}` } },
+          ...(items.length ? shown.map((item, index) => h(item.key ? 'button' : 'div', {
+            key: index,
+            ...(item.key ? { type: 'button', className: 'awr-link', onClick: () => onPick(item.key) } : {}),
+            title: [item.title, item.model, Number.isFinite(item.startRevision) ? t('working.since', { rev: item.startRevision }) : undefined].filter(Boolean).join(' · '),
+            style: { display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', padding: '8px 0', borderBottom: `.5px solid ${C.line2}`, borderRadius: 0, fontSize: 13, lineHeight: '20px', color: C.text },
+          },
+          h(Icon, { name: 'node', size: 12 }),
+          h('span', { className: 'awr-clamp1', style: { minWidth: 0, flex: 1, textAlign: 'left' } }, item.title ?? t('working.unclaimed')),
+          item.model ? h('span', { className: 'awr-clamp1', style: { fontSize: 12, color: C.text3, maxWidth: 140 } }, item.model) : null,
+          Number.isFinite(item.startedAt) ? h('span', { style: { fontSize: 12, color: C.faint, flex: 'none', fontVariantNumeric: 'tabular-nums' } }, ago(item.startedAt, t)) : null))
+            : [h('div', { key: 'none', 'data-testid': 'awr-working-none', style: { padding: '8px 0', ...P.note } }, t('working.empty'))]),
+          items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, 'aria-expanded': all, onClick: () => setAll(!all) }, all ? t('needs.less') : t('working.more', { n: items.length - 3 })) : null,
+          // Its own sentence: a session window may be short in a different way than an event read is.
+          working?.mayHaveMore ? h('div', { style: { ...P.note, marginTop: 4 } }, t('working.may.more')) : null)
+      )
+    }
+
+    /**
+     * What the ledger recorded (DSH-079 P1), newest first, in AWR's own words — they are not translated because they are a
+     * record, not copy. A read that came back with nothing says so, and a page whose awr will not hand the events over says
+     * that instead, because a quiet block is read as a project that did nothing.
+     */
+    function LedgerEvents({ activity, byKey, t, onPick }) {
+      const [all, setAll] = React.useState(false)
+      const items = activity?.items ?? []
+      const shown = all ? items : items.slice(0, 5)
+      return h('section', { 'data-testid': 'awr-activity', style: { marginTop: 40 } },
+        h('div', { style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } },
+          h('span', { title: t('tip.activity') }, t('activity.title')),
+          h('span', { style: { marginLeft: 6, color: C.text3, fontWeight: 400, fontVariantNumeric: 'tabular-nums' } }, t('activity.count', { n: items.length }))),
+        h('div', { style: { marginTop: 4, borderTop: `.5px solid ${C.line2}` } },
+          ...(items.length ? shown.map((event, index) => h('div', {
+            key: index,
+            style: { display: 'flex', alignItems: 'baseline', gap: 8, padding: '8px 0', borderBottom: `.5px solid ${C.line2}`, fontSize: 13, lineHeight: '20px', color: C.text2 },
+          },
+          h('span', { style: { fontSize: 12, color: C.faint, flex: 'none', fontVariantNumeric: 'tabular-nums' }, title: Number.isFinite(event.at) ? clock(event.at) : undefined }, Number.isFinite(event.at) ? ago(event.at, t) : '—'),
+          h('span', { className: 'awr-clamp1', style: { minWidth: 0, flex: 1 } }, event.summary ?? event.kind),
+          // Which piece of work it is about, in that work's own words; its key stays in the tooltip like everywhere else.
+          event.key && byKey?.has(event.key) ? h('button', { type: 'button', className: 'awr-link', style: { fontSize: 12, flex: 'none', maxWidth: 160 }, title: event.key, onClick: () => onPick(event.key) },
+            h('span', { className: 'awr-clamp1' }, byKey.get(event.key).title)) : null))
+            : [h('div', { key: 'none', 'data-testid': 'awr-activity-none', style: { padding: '8px 0', ...P.note } }, activity ? t('activity.empty') : t('activity.unread'))]),
+          items.length > 5 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, 'aria-expanded': all, onClick: () => setAll(!all) }, all ? t('activity.less') : t('activity.open')) : null,
+          activity?.truncated ? h('div', { style: { ...P.note, marginTop: 4 } }, t('activity.more')) : null)
+      )
+    }
+
     /** The details of one piece of work, in plain words; its identifiers are folded at the end. */
-    function Detail({ node, byKey, t, onPick, onClose }) {
+    function Detail({ node, byKey, t, onPick, onClaim, onClose }) {
+      const [claiming, setClaiming] = React.useState(false)
       const section = (label, body) => h('div', { style: { marginTop: 16 } }, h('div', { style: { fontSize: 12, lineHeight: '16px', color: C.text3, marginBottom: 4 } }, label), body)
       const links = (keys) => h('div', { style: { display: 'flex', flexDirection: 'column', gap: 2 } },
         ...keys.filter((key) => byKey.has(key)).map((key) => {
@@ -1437,13 +1963,21 @@ window.__ModuleLoader__.load({
           h('button', { type: 'button', className: 'awr-btn awr-btn-icon', style: { margin: '0 -4px 0 0' }, title: t('detail.close'), 'aria-label': t('detail.close'), onClick: onClose }, h(Icon, { name: 'x', size: 14 }))),
         h('div', { style: { marginTop: 4, fontSize: 15, lineHeight: '22px', fontWeight: 500, color: C.text, wordBreak: 'break-word' } }, node.title),
         node.blocker ? section(t('detail.blocker'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.bad, wordBreak: 'break-word' } }, node.blocker)) : null,
+        // Why AWR says it waits, in AWR's own words, with the condition that would release it.
+        node.wait ? section(t('detail.wait'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text2, wordBreak: 'break-word' } }, node.wait.summary,
+          node.wait.release ? h('div', { style: { marginTop: 4, fontSize: 12, lineHeight: '18px', color: C.text3 } }, `${t('detail.wait.release')}：${node.wait.release}`) : null)) : null,
         node.next ? section(t('detail.next'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text, wordBreak: 'break-word' } }, node.next)) : null,
-        node.outcomes?.length ? section(t('detail.outcomes'), h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 } },
+        node.outcomes?.length ? section(h('span', { title: t('tip.acceptance') }, t('detail.outcomes')), h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 } },
           ...node.outcomes.map((outcome, index) => h('li', { key: index, style: { display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, lineHeight: '20px', color: C.text2 } },
             h('span', { style: { flex: 'none', width: 8, height: 8, boxSizing: 'border-box', borderRadius: 2, border: `1.5px solid ${node.state === 'done' ? C.text3 : C.faint}`, background: node.state === 'done' ? C.text3 : 'transparent', transform: 'translateY(-1px)' } }),
             h('span', { style: { minWidth: 0, wordBreak: 'break-word' } }, outcome))))) : null,
         node.dependsOn?.some((key) => byKey.has(key)) ? section(t('detail.depends'), links(node.dependsOn)) : null,
         node.unlocks?.some((key) => byKey.has(key)) ? section(t('detail.unlocks'), links(node.unlocks)) : null,
+        // Ready work can really be taken: the button runs the plugin's own claim command in this conversation.
+        node.state === 'ready' ? section(t('detail.take'), h('button', {
+          type: 'button', className: 'awr-btn awr-btn-soft', 'id': 'awr-detail-claim', disabled: claiming,
+          onClick: async () => { setClaiming(true); try { await onClaim(node.key) } finally { setClaiming(false) } },
+        }, claiming ? t('detail.take.busy') : t('detail.take.run'))) : null,
         h('div', { style: { marginTop: 16, paddingTop: 12, borderTop: `.5px solid ${C.line2}` } },
           h(Fold, { label: t('tech.title'), testId: 'awr-detail-tech' },
             h('div', { style: { display: 'flex', flexDirection: 'column', gap: 2 } },
@@ -1452,7 +1986,7 @@ window.__ModuleLoader__.load({
     }
 
     /** By mainline: each with how far it is, the work that is left as cards, and the finished work folded. */
-    function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, onPick }) {
+    function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, laneFilter, onLane, onClear, onPick }) {
       const [open, setOpen] = React.useState({})
       const groups = lanes.map((lane) => {
         const own = nodes.filter((node) => node.lane === lane.id && matches(node)).sort(byState)
@@ -1467,16 +2001,16 @@ window.__ModuleLoader__.load({
         const doneOpen = showDone || open[`${lane.id}:done`] === true
         return h('section', { key: lane.id, 'data-lane': lane.id, style: { marginBottom: 24 } },
           h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 } },
-            h('span', { style: { fontSize: 14, lineHeight: '20px', fontWeight: 500, color: C.text } }, laneTitle(lane.id, t, strip)),
+            h('button', { type: 'button', className: 'awr-legend', 'data-lane-chip': lane.id, 'aria-pressed': laneFilter === lane.id, ...(laneFilter && laneFilter !== lane.id ? { 'data-off': 'true' } : {}), title: `${laneTitle(lane.id, t, strip)} · ${t('lane.chip.tip')}`, style: { padding: '0 0 0 8px', margin: '0 0 0 -8px', fontSize: 14, lineHeight: '20px', fontWeight: 500, color: C.text }, onClick: () => onLane?.(lane.id) }, laneTitle(lane.id, t, strip)),
             h('span', { style: { flex: 'none', width: 72, height: 4, borderRadius: 2, background: C.active, overflow: 'hidden' } }, h('span', { style: { display: 'block', width: `${lane.total ? (lane.done / lane.total) * 100 : 0}%`, height: '100%', background: C.text } })),
-            h('span', { style: { fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, lane.done === lane.total ? t('lane.alldone') : `${lane.done} / ${lane.total}`)),
+            h('span', { title: t('tip.lane'), style: { fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, lane.done === lane.total ? t('lane.alldone') : `${lane.done} / ${lane.total}`)),
           cards.length ? h('div', { style: grid }, ...cards.map((node) => h(WorkCard, { key: node.key, node, t, selected: selected === node.key, onPick }))) : null,
           h('div', { style: { display: 'flex', gap: 4, margin: '4px 0 0 -8px' } },
             left.length > 8 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { fontSize: 12 }, onClick: () => setOpen({ ...open, [lane.id]: !all }) }, all ? t('needs.less') : t('lane.more', { n: left.length - 8 })) : null,
             done.length && !showDone ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', 'data-done-toggle': lane.id, style: { fontSize: 12 }, 'aria-expanded': doneOpen, onClick: () => setOpen({ ...open, [`${lane.id}:done`]: !doneOpen }) }, h(Icon, { name: 'check', size: 12 }), t('lane.done', { n: done.length })) : null),
           doneOpen && done.length ? h('div', { style: { ...grid, marginTop: 8 } }, ...done.map((node) => h(WorkCard, { key: node.key, node, t, selected: selected === node.key, onPick }))) : null)
       }
-      if (!groups.length) return h('p', { style: { margin: '32px 0', fontSize: 13, color: C.text3 } }, t('empty.nomatch'))
+      if (!groups.length) return h(EmptyState, { kind: 'filtered', dense: true, action: onClear, t })
       const finishedOpen = showDone || open['~finished'] === true || !active.length
       return h('div', { 'data-testid': 'awr-view-lines' },
         ...active.map(renderGroup),
@@ -1516,12 +2050,12 @@ window.__ModuleLoader__.load({
           h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(208px, 1fr))', gap: 8 } }, ...loose.map((node) => h(WorkCard, { key: node.key, node, t, selected: selected === node.key, onPick })))) : null)
     }
 
-    function LanesView({ nodes, lanes, t, strip, selected, matches, zoom, onPick }) {
+    function LanesView({ nodes, lanes, t, strip, selected, matches, zoom, laneFilter, onLane, onPick }) {
       const layout = React.useMemo(() => lanesLayout(nodes, lanes), [nodes, lanes])
       if (!nodes.length) return h('p', { style: { margin: '32px 0', fontSize: 13, color: C.text3 } }, t('empty.alldone'))
       const header = layout.columns.map((column, index) => h('div', { key: column.lane.id, 'data-lane-head': column.lane.id, style: { position: 'absolute', left: index * (CARD_W + LANE_GAP), top: 0, width: CARD_W, height: LANE_HEAD - 12, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, borderBottom: `.5px solid ${C.line2}` } },
-        h('span', { className: 'awr-clamp1', style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } }, laneTitle(column.lane.id, t, strip)),
-        h('span', { style: { flex: 'none', fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${column.lane.done} / ${column.lane.total}`)))
+        h('button', { type: 'button', className: 'awr-legend', 'data-lane-chip': column.lane.id, 'aria-pressed': laneFilter === column.lane.id, ...(laneFilter && laneFilter !== column.lane.id ? { 'data-off': 'true' } : {}), title: `${laneTitle(column.lane.id, t, strip)} · ${t('lane.chip.tip')}`, style: { minWidth: 0, padding: '0 0 0 8px', margin: '0 0 0 -8px', fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text }, onClick: () => onLane?.(column.lane.id) }, h('span', { className: 'awr-clamp1' }, laneTitle(column.lane.id, t, strip))),
+        h('span', { title: t('tip.lane'), style: { flex: 'none', fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${column.lane.done} / ${column.lane.total}`)))
       return h('div', { 'data-testid': 'awr-view-lanes', style: { overflowX: 'auto', padding: '4px 0 16px 16px' } }, h(Canvas, { layout, nodes, t, selected, matches, zoom, onPick, header }))
     }
 
@@ -1552,6 +2086,7 @@ window.__ModuleLoader__.load({
       const [selected, setSelected] = React.useState(undefined)
       const [query, setQuery] = React.useState('')
       const [only, setOnly] = React.useState(undefined)
+      const [laneFilter, setLaneFilter] = React.useState(undefined)
       const [showDone, setShowDone] = React.useState(false)
       const [zoom, setZoom] = React.useState(1)
       const [failure, setFailure] = React.useState(undefined)
@@ -1573,7 +2108,15 @@ window.__ModuleLoader__.load({
       // Finished work is folded away unless asked for, or unless the legend is asking for exactly that.
       const visible = React.useMemo(() => all.filter((node) => showDone || only === 'done' || node.state !== 'done'), [all, showDone, only])
       const needle = query.trim().toLowerCase()
-      const matches = React.useCallback((node) => (!only || node.state === only) && (!needle || node.title.toLowerCase().includes(needle) || String(node.key).toLowerCase().includes(needle)), [only, needle])
+      const matches = React.useCallback((node) => (!only || node.state === only) && (!laneFilter || node.lane === laneFilter) && (!needle || node.title.toLowerCase().includes(needle) || String(node.key).toLowerCase().includes(needle)), [only, laneFilter, needle])
+
+      // A filter that empties the page has to be escapable without hunting for the control that set it.
+      const clearFilters = () => {
+        setOnly(undefined)
+        setLaneFilter(undefined)
+        setQuery('')
+        setShowDone(false)
+      }
 
       const start = async () => {
         setFailure(undefined)
@@ -1611,6 +2154,24 @@ window.__ModuleLoader__.load({
         const natural = mode === 'graph' ? graphLayout(visible).width : lanesLayout(visible, lanes).width
         if (width && natural) setZoom(Math.max(0.3, Math.min(1, Math.floor((width / natural) * 20) / 20)))
       }
+      // Entering a canvas view fits the whole chain in the window, so the end of it is never off-screen.
+      // Hosts without a browser frame clock (tests, embedders) fall back to a timer.
+      React.useEffect(() => {
+        if (mode === 'lines') return undefined
+        const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 16)
+        const caf = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : (id) => clearTimeout(id)
+        const frame = raf(fit)
+        return () => caf(frame)
+      }, [mode, visible.length])
+
+      // Taking ready work is the plugin's own command, run in this conversation.
+      const claim = async (key) => {
+        try {
+          await project.act(`/awr claim ${key}`)
+        } catch {
+          // The host shows the reason; the button just becomes pressable again.
+        }
+      }
 
       const frame = (children) => h('div', { 'data-testid': 'awr-page', style: { height: '100%', overflow: 'auto', boxSizing: 'border-box', color: C.text, fontSize: 13, lineHeight: '20px' } }, children)
       const center = (children) => frame(h('div', { style: { maxWidth: 420, margin: '0 auto', padding: '72px 24px 200px' } }, children))
@@ -1647,6 +2208,20 @@ window.__ModuleLoader__.load({
       const pick = (key) => setSelected(key === selected ? undefined : key)
       const graphish = mode !== 'lines'
       const inset = 'clamp(24px, 4vw, 48px)'
+      const pickLane = (id) => setLaneFilter(laneFilter === id ? undefined : id)
+      // Every filter that is on gets named where it can be seen, with the way out of it: a page narrowed by a chip
+      // nobody can see reads as a project that shrank (DSH-079).
+      const filters = []
+      if (only) filters.push({ key: 'state', label: t(`state.${only}`), clear: () => setOnly(undefined) })
+      if (laneFilter) filters.push({ key: 'lane', label: t('step.lane', { id: laneTitle(laneFilter, t, strip) }), clear: () => setLaneFilter(undefined) })
+      if (needle) filters.push({ key: 'query', label: t('filter.query', { q: query.trim() }), clear: () => setQuery('') })
+      if (showDone) filters.push({ key: 'done', label: t('tools.done'), clear: () => setShowDone(false) })
+      const filterBar = filters.length
+        ? h('div', { 'data-testid': 'awr-filters', style: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, margin: '20px 0 12px -8px' } },
+            h('span', { 'data-testid': 'awr-filters-count', style: { ...P.note, margin: 0, marginRight: 4 } }, t('filter.shown', { shown: visible.filter(matches).length, total: all.length })),
+            ...filters.map((item) => h('button', { key: item.key, type: 'button', className: 'awr-legend', 'data-filter': item.key, 'aria-pressed': true, title: t('filter.clear.one'), onClick: item.clear }, item.label, h(Icon, { name: 'x', size: 11 }))),
+            h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', 'data-testid': 'awr-filters-clear', style: { fontSize: 12 }, onClick: clearFilters }, t('filter.clear')))
+        : null
 
       return frame(h('div', { style: { maxWidth: 1280, margin: '0 auto', padding: `28px ${inset} 200px` } },
         h('div', { style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 } },
@@ -1655,13 +2230,17 @@ window.__ModuleLoader__.load({
             h('div', { className: 'awr-clamp1', style: { marginTop: 2, fontSize: 13, lineHeight: '20px', color: C.text3 } },
               [progress.project || baseName(view.projectRoot), goal ? `${t('page.goal', { title: goal.title })}${goals.length > 1 ? t('page.goals.more', { n: goals.length - 1 }) : ''}` : undefined].filter(Boolean).join(' · '))),
           h('div', { style: { display: 'flex', alignItems: 'center', gap: 4, flex: 'none' } },
-            h('span', { 'data-testid': 'awr-updated', style: { marginRight: 4, fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, working === 'sync' ? t('page.syncing') : t('page.updated', { time: clock(progress.updatedAt) })),
+            h('span', { 'data-testid': 'awr-updated', title: t('tip.updated'), style: { marginRight: 4, fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, working === 'sync' ? t('page.syncing') : t('page.updated', { time: clock(progress.updatedAt) })),
             h('button', { id: 'awr-page-refresh', type: 'button', className: 'awr-btn awr-btn-icon', title: t('page.refresh'), 'aria-label': t('page.refresh'), disabled: Boolean(working), onClick: () => ask(false) }, h(Icon, { name: 'refresh', size: 14, className: working ? 'awr-spin' : undefined })),
             h('button', { id: 'awr-page-sync', type: 'button', className: 'awr-btn awr-btn-quiet', disabled: Boolean(working), onClick: () => ask(true) }, t('page.sync')))),
 
+        h(SourceIssues, { issues: progress.sourceIssues, t }),
         all.length === 0
-          ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t('empty.nowork.title')), h('p', { style: P.body }, t('empty.nowork.body')))
+          ? h(EmptyState, { kind: progress.sourceIssues ? 'broken' : 'none', testid: 'awr-page-empty', reason: progress.sourceIssues ? 'sourcebroken' : 'nowork', t })
           : h(React.Fragment, null,
+              h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
+              h(NextStep, { next: progress.next, guidance: progress.guidance, accounting: progress.accounting, counts: progress.counts, t, onPick: (key) => setSelected(key) }),
+              h(Working, { working: progress.working, t, onPick: (key) => setSelected(key) }),
               h('div', { style: { marginTop: 24 } }, h(Gauge, { counts: progress.counts, t, only, onOnly: setOnly })),
               h(Needs, { items: [...(organization?.ready === false ? [{ kind: 'setup', title: t('needs.setup.title'), detail: t('needs.setup', { n: organization.gaps ?? 0 }) }] : []), ...(progress.attention ?? [])], t, onPick: (key) => setSelected(key) }),
 
@@ -1679,12 +2258,22 @@ window.__ModuleLoader__.load({
                     h('button', { type: 'button', className: 'awr-btn awr-btn-icon', title: t('tools.zoom.in'), 'aria-label': t('tools.zoom.in'), disabled: zoom >= 1.5, onClick: () => setZoom(Math.min(1.5, Math.round((zoom + 0.1) * 10) / 10)) }, h(Icon, { name: 'plus', size: 14 })),
                     h('button', { type: 'button', className: 'awr-btn awr-btn-icon', title: t('tools.zoom.fit'), 'aria-label': t('tools.zoom.fit'), onClick: fit }, h(Icon, { name: 'fit', size: 14 }))) : null)),
 
+              filterBar,
               h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 24 } },
                 h('div', { ref: area, style: { minWidth: 0, flex: 1 } },
-                  mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', onPick: pick })
+                  mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', laneFilter, onLane: pickLane, onClear: clearFilters, onPick: pick })
                     : mode === 'graph' ? h(GraphView, { nodes: visible, t, selected, matches, zoom, onPick: pick })
-                      : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, onPick: pick })),
-                node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClose: () => setSelected(undefined) }) : null))))
+                      : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, laneFilter, onLane: pickLane, onPick: pick })),
+                node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null),
+
+              h(LedgerEvents, { activity: progress.activity, byKey, t, onPick: (key) => setSelected(key) }),
+
+              progress.coverage || progress.health || progress.accounting
+                ? h('div', { 'data-testid': 'awr-footzones', style: { marginTop: 40, paddingTop: 20, borderTop: `.5px solid ${C.line2}`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px 48px' } },
+                  h(Coverage, { coverage: progress.coverage, t }),
+                  h(Health, { health: progress.health, t }),
+                  h(AccountingFacts, { accounting: progress.accounting, t }))
+                : null)))
     }
 
     // ---- client/60-rows.js ----

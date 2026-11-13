@@ -67,8 +67,50 @@ test('a card opened on data written a moment ago asks the host nothing', async (
   const ui = await open(client)
   assert.deepEqual(client.calls, [], 'no command, so nothing in the conversation')
   assert.ok(ui.byTestId('awr-managed'))
-  assert.equal(client.reads.at(-1).path, '/Users/test/.local/state/dsh-awr/panel/conv-1.json')
-  assert.equal(JSON.stringify(client.reads.at(-1).range), '{}')
+  // The card may read the progress file too, but only files: reading one is not asking the host anything.
+  const panelRead = client.reads.filter((read) => !read.path.endsWith('.progress.json')).at(-1)
+  assert.equal(panelRead.path, '/Users/test/.local/state/dsh-awr/panel/conv-1.json')
+  assert.equal(JSON.stringify(panelRead.range), '{}')
+})
+
+test('the card opens with the four questions the progress file already holds: goal, how far, next', async () => {
+  const loadClientWith = (options) => loadClient({
+    view: managed,
+    work: () => workView(),
+    progress: () => ({
+      ok: true,
+      schema: 2,
+      goal: { title: 'Ship the plugin to the team' },
+      next: { key: 'DSH-076', state: 'active', text: 'finish the popover digest' },
+      counts: { total: 43, done: 37, active: 2, ready: 1, blocked: 0, waiting: 3, sessions: 6 },
+      nodes: [],
+      lanes: [],
+    }),
+    ...options,
+  })
+  const client = loadClientWith({})
+  const ui = await open(client)
+  assert.ok(ui.byTestId('awr-digest'), 'the digest sits at the top of the card')
+  assert.match(textOf(ui.byTestId('awr-digest-goal')), /Ship the plugin to the team/)
+  assert.equal(textOf(ui.byTestId('awr-digest-count')), '37 / 43')
+  assert.match(textOf(ui.byTestId('awr-digest-next')), /finish the popover digest/)
+  assert.deepEqual(client.calls, [], 'reading a file is not asking the host to do anything')
+  const chinese = loadClientWith({ language: 'zh' })
+  const zh = await open(chinese)
+  assert.match(textOf(zh.byTestId('awr-digest')), /终极目标/)
+  assert.match(textOf(zh.byTestId('awr-digest')), /下一步/)
+})
+
+test('no progress file means no digest and no extra ask: the card says nothing it does not know', async () => {
+  for (const files of ['fresh', 'none']) {
+    const client = loadClient({ view: managed, work: () => workView(), files })
+    const ui = await open(client)
+    assert.equal(ui.byTestId('awr-digest'), undefined, files)
+    assert.ok(ui.byTestId('awr-managed'), files)
+  }
+  const client = loadClient({ view: managed, work: () => workView() })
+  await open(client)
+  assert.deepEqual(client.calls.filter((line) => line.includes('progress')), [], 'the card never asks for progress itself')
 })
 
 test('data that is missing or older than 30 s makes the host write it, with one command in the interface language', async () => {
@@ -434,4 +476,22 @@ test('every sentence exists in both languages, and the Chinese interface is Chin
     const placeholders = (text) => (text.match(/\{\w+\}/g) ?? []).sort().join()
     assert.equal(placeholders(zh[key]), placeholders(en[key]), `the same placeholders in ${key}`)
   }
+})
+
+test('the chip itself carries how far the project is, before anybody clicks it', async () => {
+  const progress = () => ({
+    ok: true,
+    schema: 2,
+    nodes: [],
+    counts: { total: 43, done: 40, active: 1, ready: 1, blocked: 0, waiting: 1, sessions: 6 },
+    next: { key: 'DSH-076', state: 'active', text: 'finish the popover digest' },
+  })
+  const client = loadClient({ view: managed, work: () => workView(), progress })
+  const ui = await client.chip()
+  assert.equal(textOf(ui.byTestId('awr-chip-count')), '40/43', 'the count answers the question without opening anything')
+  assert.match(ui.byTestId('awr-dot').children.length >= 0 ? ui.find((node) => node.props.id === 'awr-header-action').props.title : '', /finish the popover digest/, 'the next step rides in the tooltip')
+  assert.deepEqual(client.calls, [], 'reading a file is not asking the host to do anything')
+  const plain = loadClient({ view: managed, work: () => workView() })
+  const chipUi = await plain.chip()
+  assert.equal(chipUi.byTestId('awr-chip-count'), undefined, 'no file, no numbers: the chip says nothing it does not know')
 })

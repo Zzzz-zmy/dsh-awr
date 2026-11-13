@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dsh-awr 进展页 · 对标「上下文」页 高保真稿（真实数据 rev 118）</title>
+<style>
+  :root{
+    --bg:#0e1013; --panel:#15181d; --panel2:#1a1e24; --line:#252a32; --line2:#2f353f;
+    --text:#e6e9ee; --muted:#939cab; --faint:#6b7482;
+    --done:#3fb97f; --active:#4c8dff; --ready:#c8a24a; --blocked:#e0596a; --waiting:#8a7ce0; --planned:#5a6472;
+    --success:#3fb97f; --error:#e0596a;
+    --sys:#4c8dff; --tools:#3fb97f; --msg:#c8a24a;
+    --radius:10px; --pad:14px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f6f7f9; --panel:#fff; --panel2:#f2f4f7; --line:#e3e6ea; --line2:#d5dae1;
+      --text:#161a1f; --muted:#5b6472; --faint:#8b95a3; --planned:#aab2be; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:13px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Microsoft Yahei",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+  h1{font-size:17px;margin:0 0 4px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:18px}
+  .num{font-variant-numeric:tabular-nums}
+  .title{display:flex;align-items:center;gap:6px}
+  .q{color:var(--faint);font-weight:400;font-size:11.5px}
+  .info{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;
+    border:1px solid var(--line2);color:var(--faint);font-size:9px;cursor:help;flex:none}
+  .grid{display:grid;gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--pad)}
+  .card h2{margin:0 0 2px;font-size:13px;font-weight:600}
+  .card .q{display:block;margin:0 0 10px}
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:11px 12px}
+  .kpi .k{color:var(--muted);font-size:11px;margin-bottom:3px}
+  .kpi .v{font-size:20px;font-weight:650;letter-spacing:-.3px}
+  .kpi .s{color:var(--faint);font-size:10.5px;margin-top:2px}
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  /* next step */
+  .next{border-color:var(--line2);background:linear-gradient(180deg,var(--panel2),var(--panel))}
+  .headline{font-size:19px;font-weight:650;line-height:1.4;margin:2px 0 10px;letter-spacing:-.2px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}
+  .chip{display:inline-flex;align-items:center;gap:5px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;padding:2.5px 9px;font-size:11.5px;color:var(--muted)}
+  .chip b{color:var(--text);font-weight:600}
+  .chip.st{color:var(--active);border-color:color-mix(in srgb,var(--active) 35%,var(--line))}
+  .chip.warn{color:var(--ready);border-color:color-mix(in srgb,var(--ready) 40%,var(--line))}
+  .chip.bad{color:var(--blocked);border-color:color-mix(in srgb,var(--blocked) 40%,var(--line))}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+  .basis{color:var(--faint);font-size:11.5px;border-left:2px solid var(--line2);padding-left:8px;margin:0 0 12px}
+  details{margin-top:8px}
+  summary{color:var(--muted);font-size:11.5px;cursor:pointer;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--faint)}
+  details[open] summary::before{content:"▾ "}
+  .raw{margin-top:7px;padding:9px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    color:var(--muted);font-size:11.5px;white-space:pre-wrap}
+  /* stacked bar */
+  .bar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--panel2);gap:1.5px}
+  .seg{height:100%}
+  .seg.done{background:var(--done)} .seg.active{background:var(--active)} .seg.ready{background:var(--ready)}
+  .seg.blocked{background:var(--blocked)} .seg.waiting{background:var(--waiting)}
+  .seg.reserve{background:repeating-linear-gradient(45deg,var(--line2) 0 3px,transparent 3px 6px)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:9px}
+  .legend div{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
+  .sw{width:8px;height:8px;border-radius:2px;flex:none}
+  /* table rows */
+  .rows{display:flex;flex-direction:column;gap:0}
+  .row{display:flex;align-items:baseline;gap:8px;padding:5.5px 0;border-bottom:1px solid var(--line);font-size:12px}
+  .row:last-child{border-bottom:0}
+  .row dt{color:var(--muted);flex:none;min-width:104px}
+  .row dd{margin:0;flex:1}
+  .row .r{text-align:right;color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:900px){.two{grid-template-columns:1fr}}
+  .empty{color:var(--faint);font-size:11.5px;padding:14px 0}
+  .lane{border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px;background:var(--panel2)}
+  .lane .h{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px}
+  .mini{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+  .mini i{display:block;height:100%;background:var(--done)}
+  .agent{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:11.5px}
+  .agent:last-child{border-bottom:0}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px color-mix(in srgb,var(--success) 22%,transparent);flex:none}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
+  .src{color:var(--faint);font-size:11px;margin-top:16px;line-height:1.7}
+  .sec-t{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.6px;margin:18px 0 8px}
+  .est{color:var(--faint)}
+  ul.chk{margin:0;padding-left:0;list-style:none}
+  ul.chk li{display:flex;gap:7px;padding:3.5px 0;font-size:12px;color:var(--muted)}
+  ul.chk li::before{content:"◻";color:var(--faint);flex:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>dsh-awr · 进展页（对标「上下文」页重做稿）</h1>
+  <div class="sub">项目 <b>dsh-awr</b> · 台账 revision <span class="num">118</span> · 数据全部来自 <code>awr overview snapshot --json</code> 真实输出，未做任何美化 · 静态稿，非运行时截图</div>
+
+  <!-- KPI 栏：抄 dsh-context ov.kpi.* 的"主数字 + 口径副行" -->
+  <div class="kpis">
+    <div class="kpi"><div class="k">工作项</div><div class="v num">46</div><div class="s">无归档 · 无取消 · rev 118</div></div>
+    <div class="kpi"><div class="k">已完成</div><div class="v num" style="color:var(--done)">42</div><div class="s">主线 DSH 41/45</div></div>
+    <div class="kpi"><div class="k">进行中</div><div class="v num" style="color:var(--active)">2</div><div class="s">DSH-077 · DSH-078</div></div>
+    <div class="kpi"><div class="k">待开始</div><div class="v num" style="color:var(--ready)">2</div><div class="s">AWR 判定 ready：DSH-079、WORK-92d9…</div></div>
+    <div class="kpi"><div class="k">阻塞</div><div class="v num">0</div><div class="s">等待中 0 · 计划中 0</div></div>
+    <div class="kpi"><div class="k">活跃会话</div><div class="v num">6</div><div class="s">5 个绑定同一工作项 · 1 个另一个</div></div>
+  </div>
+
+  <!-- ① 下一步：三层 -->
+  <div class="card next" style="margin-bottom:12px">
+    <h2 class="title">下一步做什么 <span class="q">回答：我现在该动手做哪件事，凭什么</span></h2>
+
+    <div class="headline">PR #1 已开，等业主按八项像素验收后合并</div>
+
+    <div class="chips">
+      <span class="chip st"><span class="dot"></span>进行中</span>
+      <span class="chip"><b>DSH-077</b> 推倒重来·节点4: 真机验收与合并</span>
+      <span class="chip warn">active_claims 为空（无 Agent 认领记录）</span>
+      <span class="chip">主线 DSH <b class="num">41/45</b></span>
+      <span class="chip">最近更新 <span class="num">刚刚</span></span>
+    </div>
+
+    <p class="basis">依据：Work DSH-077 (推倒重来·节点4: 真机验收与合并 (live verification and merge back to main))<br>
+      何时失效：Claim conflict, source change, wait or execution outcome change <span class="q">（AWR <code>nav.guidance</code> 原文）</span></p>
+
+    <!-- ③ 指标层：状态分布条（以全量为基准，斜纹=不计入） -->
+    <div class="title" style="margin-bottom:6px">
+      <span style="font-size:12px;font-weight:600">离目标多远</span>
+      <span class="info" title="口径：以台账全量（46 项，无归档无取消）为基准，各段宽度＝该状态项数 ÷ 全量。AWR 明确拒绝提供混合完成百分比，本页因此不给总百分比，只给状态分布与各主线完成数。">?</span>
+    </div>
+    <div class="bar">
+      <div class="seg done"    style="width:91.3%" title="已完成 42"></div>
+      <div class="seg active"  style="width:4.3%"   title="进行中 2"></div>
+      <div class="seg ready"   style="width:4.3%"   title="待开始 2"></div>
+    </div>
+    <div class="legend">
+      <div><span class="sw" style="background:var(--done)"></span>已完成 <span class="num">42</span> · 91.3%</div>
+      <div><span class="sw" style="background:var(--active)"></span>进行中 <span class="num">2</span> · 4.3%</div>
+      <div><span class="sw" style="background:var(--ready)"></span>待开始 <span class="num">2</span> · 4.3%</div>
+      <div><span class="sw" style="background:var(--blocked)"></span>阻塞 <span class="num">0</span></div>
+      <div><span class="sw" style="background:repeating-linear-gradient(45deg,var(--line2) 0 3px,transparent 3px 6px)"></span>不计入统计 <span class="num">0</span></div>
+    </div>
+
+    <div class="two" style="margin-top:12px">
+      <div>
+        <div class="title" style="margin-bottom:5px"><span style="font-size:12px;font-weight:600">本项验收标准 2 条</span>
+          <span class="info" title="口径：AWR mainline outcomes 原文。AWR 未透出勾选状态，因此不显示「已完成 x/y」，只列出条文本身——不臆造完成度。">?</span></div>
+        <ul class="chk">
+          <li>真机截图对照验收清单逐项通过，业主明确验收通过。</li>
+          <li>PR 创建并合并（或被业主叫停，记录原因）。</li>
+        </ul>
+      </div>
+      <div>
+        <div class="title" style="margin-bottom:5px"><span style="font-size:12px;font-weight:600">完成率口径（AWR 官方声明）</span></div>
+        <div class="raw">Attach WS-040 account_approved_scope output; never invent a blended completion percent
+accounting.available = false · authoritative = false
+reason = approved_contract_and_verified_observations_required</div>
+      </div>
+    </div>
+
+    <details>
+      <summary>查看完整下一步（台账 next_action 原文，一字未改）</summary>
+      <div class="raw">PR #1 已开：https://github.com/Zzzz-zmy/dsh-awr/pull/1 （可自动合并，node --test 403 项 0 失败；测试清理 flaky 已修 f3abe38）。业主验收按 docs/verify-20261113/acceptance-checklist.md 八项走（dsh-redline 已装，可圈选批注）。待办：①业主重启桌面 App 清掉旧 host lib（双 host 抢占实锤见 live-verify-schema2-full.md）②八项像素验收③点头后合并 PR #1。</div>
+    </details>
+  </div>
+
+  <div class="two">
+    <!-- 此刻在做 -->
+    <div class="card">
+      <h2 class="title">此刻在做 <span class="q">回答：现在谁在跑哪一项</span></h2>
+      <div class="rows">
+        <div class="row"><dt>进行项</dt><dd><b>DSH-077</b> 真机验收与合并 · <b>DSH-078</b> 源故障显性化</dd><span class="r">2</span></div>
+        <div class="row"><dt>待开始</dt><dd><b>DSH-079</b> 进展页信息架构升级 · <b>WORK-92d9…</b> 测试适配</dd><span class="r">2</span></div>
+        <div class="row"><dt>认领</dt><dd>两个进行项 <code>active_claims</code> 均为空；会话侧各带 <code>work_item_id</code></dd><span class="r">6</span></div>
+        <div class="row"><dt>会话依赖起点</dt><dd>最早从 <span class="num">rev 9</span> 起，最新 <span class="num">rev 113</span> 起</dd><span class="r">—</span></div>
+        <div class="row"><dt>台账健康</dt><dd style="color:var(--success)">正常（schema <span class="num">14</span>，无 issue）</dd><span class="r">ok</span></div>
+        <div class="row"><dt>源可读性</dt><dd style="color:var(--success)">无 source_issues</dd><span class="r">0</span></div>
+      </div>
+    </div>
+
+    <!-- 能力覆盖 -->
+    <div class="card">
+      <h2 class="title">AWR 能力覆盖 <span class="q">回答：这台机器的 awr 能不能支撑这些操作</span></h2>
+      <div class="bar" style="margin-bottom:9px">
+        <div class="seg done" style="width:100%" title="57/57 可用"></div>
+      </div>
+      <div class="rows">
+        <div class="row"><dt>合计</dt><dd>本机 awr 声明的能力全部可用</dd><span class="r num">57/57</span></div>
+        <div class="row"><dt>source 域</dt><dd>台账源接入与重索引</dd><span class="r num">5/5</span></div>
+        <div class="row"><dt>query 域</dt><dd>状态查询</dd><span class="r num">2/2</span></div>
+        <div class="row"><dt>local 域</dt><dd>本地会话</dd><span class="r num">3/3</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-t">下面三块是本轮 P0-B / P1 的骨架位（含真实空态）</div>
+  <div class="two">
+    <div class="card">
+      <h2 class="title">台账事件 <span class="q">回答：状态什么时候、因为什么变的</span> <span class="chip" style="margin-left:auto">全部 <span class="num">0</span></span></h2>
+      <div class="chips">
+        <span class="chip">登记 <span class="num">0</span></span><span class="chip">认领 <span class="num">0</span></span>
+        <span class="chip">推进 <span class="num">0</span></span><span class="chip">阻塞 <span class="num">0</span></span>
+        <span class="chip">解除 <span class="num">0</span></span><span class="chip">验收 <span class="num">0</span></span>
+      </div>
+      <div class="empty">暂无台账事件 — awr 记录到认领、推进、阻塞或验收后，这里会按类型列出每一次状态跃迁及其 revision 定位。<span class="q">（当前 <code>events.events</code> 为空数组，实测 rev 118）</span></div>
+    </div>
+
+    <div class="card">
+      <h2 class="title">协作 <span class="q">回答：哪些 Agent 会话在这个项目上跑</span></h2>
+      <div class="agent"><span class="pulse"></span><code>01M7AH4A22QK</code><span>qwen3.8-flash-next-local</span><span style="margin-left:auto;color:var(--faint)">活跃 · 刚刚 · rev 113 起 · 项 <code>01M7ABXAP6TG</code></span></div>
+      <div class="agent"><span class="pulse"></span><code>01M7AD7RBT4E</code><span>deepseek-flash</span><span style="margin-left:auto;color:var(--faint)">活跃 · 1 小时前 · rev 81 起 · 项 <code>01M79R2K8N9D</code></span></div>
+      <div class="agent"><span class="pulse"></span><code>01M79VAJNGXN</code><span>qwen3.8-flash-next-local</span><span style="margin-left:auto;color:var(--faint)">活跃 · 6 小时前 · rev 45 起 · 项 <code>01M79R2K8N9D</code></span></div>
+      <div class="agent"><span class="pulse"></span><code>01M79VAJM1K2</code><span>qwen3.8-flash-next-local</span><span style="margin-left:auto;color:var(--faint)">活跃 · 6 小时前 · rev 44 起 · 项 <code>01M79R2K8N9D</code></span></div>
+      <div class="agent"><span class="pulse"></span><code>01M79R9SRVZ4</code><span>qwen3.8-flash-next-local</span><span style="margin-left:auto;color:var(--faint)">活跃 · 7 小时前 · rev 10 起 · 项 <code>01M79R2K8N9D</code></span></div>
+      <div class="agent"><span class="pulse"></span><code>01M79R9SQBX2</code><span>qwen3.8-flash-next-local</span><span style="margin-left:auto;color:var(--faint)">活跃 · 7 小时前 · rev 9 起 · 项 <code>01M79R2K8N9D</code></span></div>
+      <div class="empty" style="padding-top:9px">P1 会把这些会话按 <code>work_item_id</code> 铺成泳道时间线。当前 5 个会话绑定同一个内部工作项 id、1 个绑定另一个；<code>work_item_id</code> 是 AWR 内部 id，页面上会原样显示并提供跳转，不做猜测性归并。</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h2 class="title">主线 <span class="q">回答：每条主线走到哪了</span></h2>
+    <div class="lane">
+      <div class="h"><span><b>DSH</b> · dsh-awr 主线</span><span class="num" style="color:var(--muted)">41 / 45</span></div>
+      <div class="mini"><i style="width:91.1%"></i></div>
+    </div>
+    <div class="lane">
+      <div class="h"><span>其他（零散项合并展示）</span><span class="num" style="color:var(--muted)">1 / 1</span></div>
+      <div class="mini"><i style="width:100%"></i></div>
+    </div>
+  </div>
+
+  <div class="src">
+    数据来源（全部实测，可复核）：<code>awr overview snapshot --json</code> @ project_revision 118；面板 <code>~/.local/state/dsh-awr/panel/session-1ed29203….progress.json</code>（schema 2；该文件是 rev 113 时刻生成的旧面板，仍是 45 项，本稿用的是 rev 118 快照 = 46 项，差的那一项就是本轮登记的 DSH-079）。<br>
+    设计对标来源：<code>dsh-context</code> 0.83.1（<code>~/.dsh/profiles/desktop/node_modules/dsh-context/README.md</code> + <code>lib/client.js</code> 中文文案表 734 条）。<br>
+    本文件是 DSH-079 的静态设计稿，仅用于业主确认方向；未被插件加载，不参与构建与测试。
+  </div>
+</div>
+</body>
+</html>
