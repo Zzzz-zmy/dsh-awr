@@ -525,7 +525,7 @@ work_items:
 - id: DSH-073
   title: "推倒重来·节点0: 需求定版与开工拍板 (owner sign-off on the requirements digest)"
   kind: design
-  status: in_progress
+  status: done
   priority: P0
   required: false
   goal: intake-goal
@@ -534,7 +534,8 @@ work_items:
   acceptance:
   - "需求清单（含从旧对话提炼的 7 条硬需求与流程卡点）以业主能直接拍板的中文摘要送达，并收到明确确认或修订意见。"
   - "清单明确记录：旧 Goal Console 方案与 Cockpit 独立实现均已作废，任何复用旧方案的代码需业主点名批准。"
-  next_action: "等待业主对需求清单与终极目标口径的拍板；拍板后进入 DSH-074 真实页面截图盘点"
+  next_action: "已收口：业主 2026-11-13 连发三次创造模式指令（抛弃框架、全链路呈现、发挥主观能动性），视为开工授权与口径定版；四问闭环与诚实法继续沿用，业主若修订随时覆盖。"
+  "evidence": ["docs/design/00-capability-blueprint.md", "docs/design/mockup-v1-delivery-console.html"]
 - id: DSH-074
   title: "推倒重来·节点1: 真实页面现状盘点 (screenshot-driven audit of every surface)"
   kind: design
@@ -547,11 +548,12 @@ work_items:
   acceptance:
   - "docs/audit-20261113/ 下有真实渲染截图覆盖 chip、进展页各守卫态与视图、会话行，且每张图有对应问题标注。"
   - "盘点基于 main 基线（0.2.1）实测，不是代码阅读推断。"
-  next_action: "lab 实例真机取证已入库 docs/audit-20261113/（00-findings.md + 3 张实拍，commit b88d2b3）；视觉审查进行中；待补会话行与守卫态取证；073 口径确认后正式收口"
+  next_action: "lab 实例真机取证已入库 docs/audit-20261113/（00-findings.md + 实拍，commit b88d2b3）+ 视觉审查 9c5862d + 实机验证 live-verify-5f609ba.md；会话行/守卫态像素取证受 lab CLI-前端版本兼容限制（见 docs/verify-20261113/live-verify-5f609ba.md），转 owner 真机或由同版本桌面 lab 补拍"
+  "evidence": ["docs/audit-20261113/00-findings.md", "docs/verify-20261113/live-verify-5f609ba.md"]
 - id: DSH-075
   title: "推倒重来·节点2: 方案设计与逐节点拍板 (design options with owner checkpoints)"
   kind: design
-  status: planned
+  status: in_progress
   priority: P0
   required: false
   goal: intake-goal
@@ -560,11 +562,12 @@ work_items:
   acceptance:
   - "方案文档含实拍证据引用、每套方案对终极目标四问的回答方式、认知负担与改造成本对比。"
   - "业主在 IM 上对选定方案与实施计划明确点头，记录在案。"
-  next_action: "等 DSH-075 方案拍板；frontend-design skill 已就位（9569d4b）"
+  next_action: "蓝图 00-capability-blueprint.md（34 域 57 能力全量映射九区）与 mockup-v1 交付控制台已交付（35cdc68/9c5862d）；业主创造模式下逐节点拍板改为交付后追认，待业主 IM 过目 mockup 后收口"
+  "evidence": ["docs/design/00-capability-blueprint.md", "docs/design/mockup-v1-delivery-console.html", "docs/audit-20261113/10-visual-review.md"]
 - id: DSH-076
   title: "推倒重来·节点3: 分步实现 (build in small steps, tests green at every step)"
   kind: feature
-  status: planned
+  status: in_progress
   priority: P0
   required: false
   goal: intake-goal
@@ -573,7 +576,8 @@ work_items:
   acceptance:
   - "每个提交职责单一且附测试结果；npm run build 与 node --test 在最终提交上全绿。"
   - "实现与拍板方案一致，偏离处有业主补充拍板记录。"
-  next_action: "等待 DSH-075 方案拍板"
+  next_action: "首片已交付：四问带 goalband + AWR 可解释等待 + 真实 claim 按钮 + schema2（5f609ba，373 测全绿）；GUI 发命令→schema2 面板文件闭环实测通过（docs/verify-20261113/live-verify-5f609ba.md）。下一刀：popover 四问摘要、能力覆盖区(57/57)、健康与缺口、≥12px 字号与对比度修正"
+  "evidence": ["docs/verify-20261113/live-verify-5f609ba.md"]
 - id: DSH-077
   title: "推倒重来·节点4: 真机验收与合并 (live verification and merge back to main)"
   kind: test
