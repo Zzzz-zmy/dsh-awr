@@ -153,7 +153,7 @@ function TechDetails({ view, work, plugin, t }) {
   const bound = work?.bound_work
   const files = (label, items, render) => (items?.length ? h('div', { style: { marginTop: 8 } },
     h('div', { style: P.label }, label),
-    ...items.map((item, index) => h('div', { key: index, style: { fontFamily: C.mono, fontSize: 11.5, lineHeight: '18px', color: C.text2, wordBreak: 'break-all' } }, render(item)))) : null)
+    ...items.map((item, index) => h('div', { key: index, style: { fontFamily: C.mono, fontSize: 12, lineHeight: '18px', color: C.text2, wordBreak: 'break-all' } }, render(item)))) : null)
   return h('div', { 'data-testid': 'awr-tech', style: { display: 'flex', flexDirection: 'column', gap: 2 } },
     h(Fact, { label: t('tech.project'), value: view.projectRoot }),
     h(Fact, { label: t('tech.revision'), value: work?.project?.revision }),

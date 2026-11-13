@@ -196,7 +196,7 @@ function GoalBand({ progress, nodes, t, onPick }) {
       h('span', { style: { fontSize: 22, lineHeight: '28px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done ?? 0),
       h('span', { style: { fontSize: 12, lineHeight: '28px', color: C.text3, fontVariantNumeric: 'tabular-nums', marginLeft: 6 } }, `/ ${total} ${t('gauge.done')}`),
       h('div', { role: 'img', 'aria-label': t('band.cells', { done: counts.done ?? 0, total }), style: { display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 6 } },
-        ...nodes.map((node) => h('span', { key: node.key, title: `${node.key} · ${node.title}`, style: { width: 10, height: 14, borderRadius: 2, background: STATE_COLOR[node.state] ?? C.idle, opacity: node.state === 'planned' || node.state === 'cancelled' ? 0.3 : 0.9 } })))),
+        ...nodes.map((node) => h('span', { key: node.key, title: `${node.key} · ${node.title}`, style: { width: 6, height: 12, borderRadius: 2, background: STATE_COLOR[node.state] ?? C.idle, opacity: node.state === 'planned' || node.state === 'cancelled' ? 0.3 : 0.9 } })))),
     h('div', { 'data-cell': 'who', style: { minWidth: 0 } }, label(t('band.who')),
       who.length
         ? h('div', { style: { fontSize: 14, lineHeight: '20px', color: C.text, wordBreak: 'break-word' } }, who.join(' · '))
