@@ -648,3 +648,4 @@ work_items:
   - "commit ea9b137 feat(page): 「此刻在做」＋「台账事件」两块上线 — 会话行只说工作项标题/模型/开了多久，起始 revision 进 tooltip，全页零 ULID；事件用 AWR 原文不翻译（是记录不是文案），行尾指向相关工作项的标题；有界读取与空读取各自说清（『页面只带一次有界的读取』/『这次读到的台账里没有事件…但这不代表什么都没发生』/『这台机器的 awr 没有把事件历史交给页面』）；中英各 17 条新文案，parity 用例约束"
   - "真实 rev 124 实测（awr overview snapshot + awr event history 各一份，双语各渲染一遍）：此刻在做 6 个会话（含 1 个未认领的，明写『一个没有认领工作的会话』），行尾相对时间；台账事件 20 条最新在上（『Started checkpoint save; completion receipt required』→ 指向 DSH-065 的标题）；会话 tooltip 含『从台账 revision 113 起』；点会话行打开对应工作项抽屉、事件行尾按钮同样可跳转；全页 0 处百分比、0 处 ULID"
   - "测试：node --test test/*.test.js → 419 项 390 通过 / 29 跳过 / 0 失败（P1 新增 5 例：会话映射与未认领保留、事件倒序与有界、空读取与没读到分开、页面两块渲染、事件不给内部 id）；docs/progress-page.md 补『谁的手在上面、台账记了什么』一节"
+  - "P1 细节修正（自检发现，非业主反馈）：Working 的 mayHaveMore 提示原先误借台账事件话术『页面只带一次有界的读取』，口径串行——会话窗口短与事件读取有界是两回事；新增专文 key working.may.more（中英）并补测试锁死不借句；两个展开按钮补 aria-expanded。全量 419/390/29/0 绿"
