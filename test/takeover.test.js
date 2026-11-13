@@ -17,13 +17,18 @@ const real = existsSync(lab) ? test : test.skip
 
 const SECRET = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
 
-/** Every file under `dir`, with content, as one digest: two equal digests mean byte-identical trees. */
+/** Every file under `dir`, with content, as one digest: two equal digests mean byte-identical trees.
+ * The `.git` directory is left out on purpose: git refreshes its own index (a stat-cache write) when
+ * any tool asks it a question, and a run that is not allowed to touch the project may still make git
+ * tidy up after itself. That is repo bookkeeping, not project content; `.awr` stays inside the digest,
+ * because writing anything there before accept is exactly what these tests forbid. */
 function digest(dir) {
   const hash = createHash('sha256')
   const walk = (current) => {
     for (const entry of readdirSync(current, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const full = join(current, entry.name)
       const name = relative(dir, full)
+      if (entry.name === '.git' && current === dir) continue
       if (entry.isDirectory()) {
         hash.update(`d:${name}\n`)
         walk(full)
@@ -218,6 +223,7 @@ real('a failure before accept leaves the project byte-identical: secret, a faili
     assert.equal(result.outcome, item.outcome, `${item.name}: ${JSON.stringify(result.record.stop)}`)
     assert.equal(result.record.stop.reason, item.reason, item.name)
     assert.equal(digest(f.root), before, `${item.name}: the project is byte-identical`)
+    assert.equal(String(f.git('status', '--porcelain')).trim(), '', `${item.name}: git itself sees no change, tracked or otherwise`)
     assert.ok(!existsSync(join(f.root, '.awr')), item.name)
     assert.equal(result.record.steps.accept, undefined, `${item.name}: accept was never reached`)
   }

@@ -518,7 +518,17 @@ real('against the real awr: the prompt gets the next action, then the open loops
   await tight.refresh('conv-1', { force: true })
   assert.match(tight.text('conv-1'), /^# AWR work context unavailable/)
   assert.match(tight.text('conv-1'), /BudgetExceeded: context budget exceeded: required \d+, budget 50/)
-  assert.match(tight.text('conv-1'), /AWR suggests: awr context compile --session \S+ --intent work --budget \d+/)
+  // Whether a suggestion line appears is AWR's doing, not the plugin's: awr 0.8.0 and later attach a
+  // next_action to BudgetExceeded, 0.7.0 does not. Ask AWR itself what it offered, then hold the notice to it.
+  let offered = null
+  try {
+    cli('context', 'compile', '--session', binding.sessionId, '--budget', '50')
+  } catch (error) {
+    const envelope = JSON.parse(String(error.stderr).split('\n').find((line) => line.startsWith('{')) ?? '{}')
+    offered = envelope?.details?.next_action ?? null
+  }
+  if (offered) assert.match(tight.text('conv-1'), new RegExp(`AWR suggests: ${offered.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), 'AWR\'s own suggestion, verbatim')
+  else assert.doesNotMatch(tight.text('conv-1'), /AWR suggests:/, 'the plugin invents no suggestion AWR did not give')
 })
 
 real('against the real awr: a project that was just taken over, with unconfirmed goals, gets its incomplete context and its gaps', async (t) => {
