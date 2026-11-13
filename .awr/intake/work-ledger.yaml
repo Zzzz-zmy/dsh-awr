@@ -522,3 +522,68 @@ work_items:
   "summary": "Reported by a user: the AWR panel said '这个文件夹范围太大，不适合当作一个项目' for an ordinary folder on Windows. takeoverRootFor in lib/takeover-host.js measured path depth with split('/'), which counts a Windows path as one segment, so every Windows directory was refused as too broad. Fixed by extracting tooBroadRoot(), which splits on both separators and keeps the filesystem-root and home refusals; PR #42, commit 6b4f6d0 on fix/windows-too-broad."
   "evidence": ["docs/evidence/DSH-066/completion-report.json"]
   "verification": {"evidence_level":"locally_verified"}
+- id: DSH-073
+  title: "推倒重来·节点0: 需求定版与开工拍板 (owner sign-off on the requirements digest)"
+  kind: design
+  status: planned
+  priority: P0
+  required: false
+  goal: intake-goal
+  depends_on: []
+  summary: "业主指令（2026-11-13 19:49）：把 dsh-awr 重构对话的全部需求推倒重来，从 main 干净基线重新开重构（分支 refactor/ground-up-redesign，旧现场封存于 tag archive/cockpit-branch-20261113 与 archive/goal-console-20261113）。本节点只定版需求：终极目标四问闭环、大盘并入进展页不独立成 tab、依赖链=有依赖关系的任务链（无依赖不入链）、覆盖全部 UI 触点、全程人话；把需求清单与边界发业主确认，确认前不写任何实现代码。"
+  acceptance:
+  - "需求清单（含从旧对话提炼的 7 条硬需求与流程卡点）以业主能直接拍板的中文摘要送达，并收到明确确认或修订意见。"
+  - "清单明确记录：旧 Goal Console 方案与 Cockpit 独立实现均已作废，任何复用旧方案的代码需业主点名批准。"
+  next_action: "整理需求定版摘要，发企微/IM 请业主确认"
+- id: DSH-074
+  title: "推倒重来·节点1: 真实页面现状盘点 (screenshot-driven audit of every surface)"
+  kind: design
+  status: planned
+  priority: P0
+  required: false
+  goal: intake-goal
+  depends_on: ["DSH-073"]
+  summary: "重构失败一次的教训是纸面设计自嗨。本节点在真实 DSH 里装上 0.2.1 基线插件，逐触点截图盘点：顶栏 chip 与 popover、进展页（含全部守卫态与四视图）、会话行；截图与问题标注写入 docs/audit-20261113/，作为后续一切设计的唯一事实来源。"
+  acceptance:
+  - "docs/audit-20261113/ 下有真实渲染截图覆盖 chip、进展页各守卫态与视图、会话行，且每张图有对应问题标注。"
+  - "盘点基于 main 基线（0.2.1）实测，不是代码阅读推断。"
+  next_action: "等待 DSH-073 业主确认"
+- id: DSH-075
+  title: "推倒重来·节点2: 方案设计与逐节点拍板 (design options with owner checkpoints)"
+  kind: design
+  status: planned
+  priority: P0
+  required: false
+  goal: intake-goal
+  depends_on: ["DSH-074"]
+  summary: "基于实拍盘点出 2-3 套以终极目标为中心的方案（含 chip/进展页/会话行全部触点、大盘作为进展页内的密度层、依赖链视图按『无依赖不入链』语义），先小样 HTML 给业主看、拍板一套，再出实施计划；默认值只建议不代拍；业主未点头的内容不得进入实现。"
+  acceptance:
+  - "方案文档含实拍证据引用、每套方案对终极目标四问的回答方式、认知负担与改造成本对比。"
+  - "业主在 IM 上对选定方案与实施计划明确点头，记录在案。"
+  next_action: "等待 DSH-074 盘点完成"
+- id: DSH-076
+  title: "推倒重来·节点3: 分步实现 (build in small steps, tests green at every step)"
+  kind: feature
+  status: planned
+  priority: P0
+  required: false
+  goal: intake-goal
+  depends_on: ["DSH-075"]
+  summary: "按拍板的实施计划在 refactor/ground-up-redesign 上小步提交：每步一个职责、node --test 全绿、en/zh 文案成对、只用 theme token；禁止一次性大爆炸提交。"
+  acceptance:
+  - "每个提交职责单一且附测试结果；npm run build 与 node --test 在最终提交上全绿。"
+  - "实现与拍板方案一致，偏离处有业主补充拍板记录。"
+  next_action: "等待 DSH-075 方案拍板"
+- id: DSH-077
+  title: "推倒重来·节点4: 真机验收与合并 (live verification and merge back to main)"
+  kind: test
+  status: planned
+  priority: P0
+  required: false
+  goal: intake-goal
+  depends_on: ["DSH-076"]
+  summary: "装回真实 DSH 截图验收每条拍板项，出对比报告给业主；业主验收通过后开 PR 合回 main。"
+  acceptance:
+  - "真机截图对照验收清单逐项通过，业主明确验收通过。"
+  - "PR 创建并合并（或被业主叫停，记录原因）。"
+  next_action: "等待 DSH-076 实现完成"
