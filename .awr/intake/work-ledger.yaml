@@ -628,11 +628,14 @@ work_items:
   depends_on: []
   summary: "业主 2026-11-13 21:11 原话：『你好像做了点啥，又好像啥都没做，就加了那一行的下一步是什么？那个指标吗』。诊断：①下一步区块把台账 next_action 整段原文当一行纯文本透出，把 PR 链接/验收清单/待办全塞进一个字段是设计偷懒；②页面整体信息层次弱，看不出项目全貌与工作量，与业主刚点赞过的「上下文」页（总进度结论先行+来源分桶归因，直观好看该有的都有）差距明显。要求：跳出当前框架，对标该页信息架构重做进展页。查证补充(21:40)：业主说的「上下文 tab」不是 DSH 内置页，而是第三方插件 dsh-context 0.83.1（已装 desktop profile）的上下文 Tab／编队 Tab／上下文洞察页；已从插件 README 与 lib/client.js 抽出 734 条中文文案与全量信息架构作为对标依据。"
   acceptance:
-  - "『下一步』不再透出整段原文：渲染为 一句话结论（下一步做什么）+ 归属（工作项 id/优先级/负责人/阻塞标记）+ 可量化指标（验收清单 x/y、目标完成 %）三层结构；无结构化数据时优雅降级为截断原文+展开。"
+  - "『下一步』不再透出整段原文：渲染为 一句话结论（下一步做什么）+ 归属（工作项 id/负责人/阻塞标记）+ 可量化指标（主线 x/y、台账 x/y、验收标准条数）三层结构；无结构化数据时优雅降级为截断原文+展开。口径修正(22:05)：AWR accounting 明确 never invent a blended completion percent，故不出「目标完成 %」，改为原样贴出 AWR 的核算声明。"
   - "host 侧 next_action 结构化解析（或新增 nextStep 可选字段：summary/blocks[]/refs[]/checklist 进度），progress.json 向后兼容不升 schema 破坏旧字段。"
   - "页面整体分区块对标上下文 tab：结论先行、分桶归因（按状态/优先级）、留白诚实；改动有 harness 用例覆盖。"
   - "业主对新版页面明确点头才算完成；node --test 全绿。"
-  next_action: "对照设计稿与高保真稿已贴给业主（docs/design-20261113/），等业主回答三个确认点（三层层序、完成率口径、本轮范围是否含 P1）后开工 P0-A+P0-B。"
+  next_action: "P0-A（三层下一步卡）已落地并推送 30a3736。等业主回答设计稿三个确认点（①三层层序 ②是否接受不出混合完成率 ③本轮范围是否含 P1 的此刻在做+事件流）；未点头前继续按 create-mode 做 P0-B（口径 tooltip、空态三分类、斜纹堆叠条、图例联动筛选），业主若改口径再按新口径调。最终仍要业主真机点头才算完成。"
   evidence:
   - "docs/design-20261113/progress-page-benchmark.md — 对标对象查证（dsh-context 0.83.1）+ 10 条可复制设计 DNA（含插件真实中文文案原文）+ 逐区块对照表（每张卡片的真实数据源与现状）+ 三层下一步取数规则 + P0/P1/P2 分期"
   - "docs/design-20261113/progress-page-mockup.html — 高保真稿，数据全部来自 awr overview snapshot --json rev 118 真实输出（46 项/完成 42/进行 2/待开始 2/阻塞 0，主线 DSH 41/45，6 个活跃会话含 work_item_id 与起始 revision，事件流为空数组故如实显示空态）；口径 tooltip 与 AWR accounting 反伪完成率声明原样呈现"
+  - "commit 30a3736 feat(progress): 下一步卡片按三层作答 — lib/progress-view.js 新增 headlineOf/linksOf 与 next.{headline,links,lane,claimed,claimedBy,checklist,changedAt} + 顶层 guidance{basis,when,recheck}（全部可选，schema 仍为 2，旧文件降级为整行）；client/50-page.js 新增 NextStep 卡片（结论/归因/指标/展开四层，含 AWR 核算原话与「AWR 不记录勾选状态」诚实声明）；中英 i18n 同步；docs/progress-page.md 写入取数规则与不出混合完成率的理由"
+  - "真实快照 rev 120 实测（node 调 buildProgress）：headline『PR #1 已开』、links=[PR #1]、lane DSH 41/45、台账 46 项完成 42、验收标准 2 条（业主写的原文，占位符被丢弃）、changedAt 为最近事件、accounting 原话照抄；未新增任何百分比"
+  - "测试：node --test test/*.test.js → 410 项 381 通过 / 29 跳过 / 0 失败（新增 host 3 例 + client 2 例，含旧 host 降级用例与 i18n 双语对齐用例）"
