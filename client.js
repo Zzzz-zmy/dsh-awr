@@ -227,6 +227,11 @@ window.__ModuleLoader__.load({
       'empty.failed.retry': 'Try again',
       'empty.nowork.title': 'No work is recorded yet',
       'empty.nowork.body': 'Once the agent records work in AWR, it shows up here',
+      'empty.source.title': 'The ledger cannot be read',
+      'empty.source.body': 'The page shows nothing because a source is broken, not because the project has no work. The banner above says what AWR reports.',
+      'sourceissues.title': 'The ledger source cannot be read — the counts may be missing work',
+      'sourceissues.hint': 'This is AWR reporting the problem itself, not an empty project:',
+      'sourceissues.fix': 'Run `awr intake inspect` to see the repair it suggests, then `awr source reindex` once the source is sound.',
       'empty.nomatch': 'No work matches',
       'empty.alldone': 'All work is done',
     }
@@ -444,6 +449,11 @@ window.__ModuleLoader__.load({
       'empty.failed.retry': '重试',
       'empty.nowork.title': '还没有登记任何工作',
       'empty.nowork.body': '让 agent 把要做的事记到 AWR 里，这里就会出现',
+      'empty.source.title': '台账读不出来',
+      'empty.source.body': '页面空白是因为台账源损坏，不是项目没有工作。上方横幅里有 AWR 的原始报错。',
+      'sourceissues.title': '台账源读不出来 —— 下面的计数可能缺工作项',
+      'sourceissues.hint': '这是 AWR 自己的报错，不是项目空了：',
+      'sourceissues.fix': '在终端运行 `awr intake inspect` 查看修复指引，修好后运行 `awr source reindex`。',
       'empty.nomatch': '没有匹配的工作',
       'empty.alldone': '所有工作都已完成',
     }
@@ -1545,6 +1555,20 @@ window.__ModuleLoader__.load({
     }
 
     /** How the project's own database stands, from `awr doctor`: what it says, in the words it means. */
+    /** The source complaint banner (DSH-078): a ledger AWR cannot read is shown as broken, never as an empty page. */
+    function SourceIssues({ issues, t }) {
+      if (!issues || !issues.length) return null
+      return h('div', { 'data-testid': 'awr-source-issues', role: 'alert', style: { marginTop: 16, border: `.5px solid ${C.bad}`, borderRadius: 10, padding: '12px 16px', minWidth: 0 } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 6 } },
+          h(Light, { state: 'blocked', size: 7 }),
+          h('span', { style: { fontSize: 13, fontWeight: 600, lineHeight: '20px', color: C.bad } }, t('sourceissues.title'))),
+        h('div', { style: { marginTop: 6, fontSize: 12.5, lineHeight: '18px', color: C.text2 } }, t('sourceissues.hint')),
+        h('ul', { style: { margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 6, minWidth: 0 } },
+          ...issues.map((issue, index) => h('li', { key: index, style: { fontSize: 12.5, lineHeight: '18px', color: C.text2, wordBreak: 'break-word' } },
+            h('code', { style: { fontSize: 12, color: C.bad, marginRight: 6 } }, issue.code), issue.message))),
+        h('div', { style: { marginTop: 10, fontSize: 12.5, lineHeight: '18px', color: C.text2 } }, t('sourceissues.fix')))
+    }
+
     function Health({ health, t }) {
       if (!health) return null
       const ISSUE = { database: 'health.issue.database', schema: 'health.issue.schema', references: 'health.issue.references', integrity: 'health.issue.integrity' }
@@ -1859,8 +1883,9 @@ window.__ModuleLoader__.load({
             h('button', { id: 'awr-page-refresh', type: 'button', className: 'awr-btn awr-btn-icon', title: t('page.refresh'), 'aria-label': t('page.refresh'), disabled: Boolean(working), onClick: () => ask(false) }, h(Icon, { name: 'refresh', size: 14, className: working ? 'awr-spin' : undefined })),
             h('button', { id: 'awr-page-sync', type: 'button', className: 'awr-btn awr-btn-quiet', disabled: Boolean(working), onClick: () => ask(true) }, t('page.sync')))),
 
+        h(SourceIssues, { issues: progress.sourceIssues, t }),
         all.length === 0
-          ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t('empty.nowork.title')), h('p', { style: P.body }, t('empty.nowork.body')))
+          ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': progress.sourceIssues ? 'sourcebroken' : 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t(progress.sourceIssues ? 'empty.source.title' : 'empty.nowork.title')), h('p', { style: P.body }, t(progress.sourceIssues ? 'empty.source.body' : 'empty.nowork.body')))
           : h(React.Fragment, null,
               h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
               h('div', { style: { marginTop: 24 } }, h(Gauge, { counts: progress.counts, t, only, onOnly: setOnly })),

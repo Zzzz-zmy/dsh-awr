@@ -427,3 +427,14 @@ test("when awr refuses to give an effort number, the page shows the refusal inst
   assert.equal(silent.ui.byTestId("awr-accounting"), undefined, "when the file carries no accounting at all, nothing is drawn")
 })
 
+
+test('a broken ledger source gets a loud banner instead of a quiet empty page', async () => {
+  const broken = () => ({ ...buildProgress(snapshot()), sourceIssues: [{ code: 'SourceConflict', message: 'source fingerprint conflict: work_items "INTAKE-001" already has a different source or identity' }] })
+  const { ui } = await page({ progress: broken })
+  const banner = textOf(ui.byTestId('awr-source-issues'))
+  assert.match(banner, /SourceConflict/, 'the error code is shown as it is')
+  assert.match(banner, /INTAKE-001/, 'and the message AWR gave')
+  assert.match(banner, /awr intake inspect/, 'the banner says what to run to fix it')
+  const plain = await page()
+  assert.equal(plain.ui.byTestId('awr-source-issues'), undefined, 'a sound source shows no banner')
+})

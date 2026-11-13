@@ -221,3 +221,20 @@ test('the health is what awr doctor says, and nothing more', () => {
   assert.equal(buildProgress(snapshot([node('A-1')])).health, undefined, 'a doctor nobody ran has no opinion')
 })
 
+
+test('a broken source is shown as what is broken, never as an empty ledger', () => {
+  const status = { ok: false, source_issues: [
+    { code: 'SourceConflict', message: 'source fingerprint conflict: work_items "INTAKE-001" already has a different source or identity' },
+    { code: 'ledger_empty', message: '  ' },
+    { code: 'long', message: 'x'.repeat(500) },
+    { code: 'd', message: 'd' }, { code: 'e', message: 'e' }, { code: 'f', message: 'f' },
+  ] }
+  const view = buildProgress(snapshot([node('A-1')]), { status })
+  assert.equal(view.sourceIssues.length, 4, 'at most four are shown at once')
+  assert.deepEqual(view.sourceIssues[0], { code: 'SourceConflict', message: 'source fingerprint conflict: work_items "INTAKE-001" already has a different source or identity' })
+  assert.equal(view.sourceIssues[1].message, 'ledger_empty', 'an issue without a message says its code')
+  assert.ok(view.sourceIssues[2].message.length <= 201, 'a long message is cut short')
+  assert.equal(buildProgress(snapshot([node('A-1')])).sourceIssues, undefined, 'a source nobody asked about has no complaint')
+  assert.equal(buildProgress(snapshot([node('A-1')]), { status: { source_issues: [] } }).sourceIssues, undefined, 'no issue, no banner')
+  assert.equal(buildProgress(snapshot([node('A-1')]), { status: { source_issues: [{ code: 'x' }, null] } }).sourceIssues.length, 1, 'only what the source actually says')
+})

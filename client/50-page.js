@@ -249,6 +249,20 @@ function Coverage({ coverage, t }) {
 }
 
 /** How the project's own database stands, from `awr doctor`: what it says, in the words it means. */
+/** The source complaint banner (DSH-078): a ledger AWR cannot read is shown as broken, never as an empty page. */
+function SourceIssues({ issues, t }) {
+  if (!issues || !issues.length) return null
+  return h('div', { 'data-testid': 'awr-source-issues', role: 'alert', style: { marginTop: 16, border: `.5px solid ${C.bad}`, borderRadius: 10, padding: '12px 16px', minWidth: 0 } },
+    h('div', { style: { display: 'flex', alignItems: 'center', gap: 6 } },
+      h(Light, { state: 'blocked', size: 7 }),
+      h('span', { style: { fontSize: 13, fontWeight: 600, lineHeight: '20px', color: C.bad } }, t('sourceissues.title'))),
+    h('div', { style: { marginTop: 6, fontSize: 12.5, lineHeight: '18px', color: C.text2 } }, t('sourceissues.hint')),
+    h('ul', { style: { margin: '6px 0 0', paddingLeft: 18, display: 'grid', gap: 6, minWidth: 0 } },
+      ...issues.map((issue, index) => h('li', { key: index, style: { fontSize: 12.5, lineHeight: '18px', color: C.text2, wordBreak: 'break-word' } },
+        h('code', { style: { fontSize: 12, color: C.bad, marginRight: 6 } }, issue.code), issue.message))),
+    h('div', { style: { marginTop: 10, fontSize: 12.5, lineHeight: '18px', color: C.text2 } }, t('sourceissues.fix')))
+}
+
 function Health({ health, t }) {
   if (!health) return null
   const ISSUE = { database: 'health.issue.database', schema: 'health.issue.schema', references: 'health.issue.references', integrity: 'health.issue.integrity' }
@@ -563,8 +577,9 @@ function ProgressPage(props) {
         h('button', { id: 'awr-page-refresh', type: 'button', className: 'awr-btn awr-btn-icon', title: t('page.refresh'), 'aria-label': t('page.refresh'), disabled: Boolean(working), onClick: () => ask(false) }, h(Icon, { name: 'refresh', size: 14, className: working ? 'awr-spin' : undefined })),
         h('button', { id: 'awr-page-sync', type: 'button', className: 'awr-btn awr-btn-quiet', disabled: Boolean(working), onClick: () => ask(true) }, t('page.sync')))),
 
+    h(SourceIssues, { issues: progress.sourceIssues, t }),
     all.length === 0
-      ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t('empty.nowork.title')), h('p', { style: P.body }, t('empty.nowork.body')))
+      ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': progress.sourceIssues ? 'sourcebroken' : 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t(progress.sourceIssues ? 'empty.source.title' : 'empty.nowork.title')), h('p', { style: P.body }, t(progress.sourceIssues ? 'empty.source.body' : 'empty.nowork.body')))
       : h(React.Fragment, null,
           h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
           h('div', { style: { marginTop: 24 } }, h(Gauge, { counts: progress.counts, t, only, onOnly: setOnly })),

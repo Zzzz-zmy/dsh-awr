@@ -214,6 +214,11 @@ const en = {
   'empty.failed.retry': 'Try again',
   'empty.nowork.title': 'No work is recorded yet',
   'empty.nowork.body': 'Once the agent records work in AWR, it shows up here',
+  'empty.source.title': 'The ledger cannot be read',
+  'empty.source.body': 'The page shows nothing because a source is broken, not because the project has no work. The banner above says what AWR reports.',
+  'sourceissues.title': 'The ledger source cannot be read — the counts may be missing work',
+  'sourceissues.hint': 'This is AWR reporting the problem itself, not an empty project:',
+  'sourceissues.fix': 'Run `awr intake inspect` to see the repair it suggests, then `awr source reindex` once the source is sound.',
   'empty.nomatch': 'No work matches',
   'empty.alldone': 'All work is done',
 }
@@ -431,6 +436,11 @@ const zh = {
   'empty.failed.retry': '重试',
   'empty.nowork.title': '还没有登记任何工作',
   'empty.nowork.body': '让 agent 把要做的事记到 AWR 里，这里就会出现',
+  'empty.source.title': '台账读不出来',
+  'empty.source.body': '页面空白是因为台账源损坏，不是项目没有工作。上方横幅里有 AWR 的原始报错。',
+  'sourceissues.title': '台账源读不出来 —— 下面的计数可能缺工作项',
+  'sourceissues.hint': '这是 AWR 自己的报错，不是项目空了：',
+  'sourceissues.fix': '在终端运行 `awr intake inspect` 查看修复指引，修好后运行 `awr source reindex`。',
   'empty.nomatch': '没有匹配的工作',
   'empty.alldone': '所有工作都已完成',
 }
