@@ -605,7 +605,7 @@ work_items:
 - id: DSH-078
   title: "源故障诚实呈现: ledger source 不可读时显示故障横幅与修复命令，禁止渲染为空台账"
   kind: feat
-  status: planned
+  status: in_progress
   priority: P1
   required: false
   goal: intake-goal
@@ -616,5 +616,5 @@ work_items:
   - "panel 的 progress.json 快照携带 source_issues 字段；字段缺失时前端保持现行为（向后兼容）。"
   - "chip 计数区在源故障时给出与空台账可区分的状态标识。"
   - "node --test 全绿且 client harness 有用例覆盖 source_issues 渲染。"
-  next_action: "host 侧 progress-view 采集 source_issues → panel 快照带字段 → 30-data/50-page 渲染故障带；先加 harness 失败用例再实现。"
-  evidence: ["bmr 事故复盘 2026-11-13：SourceConflict 期间面板 total=0，无故障提示；修复 receipt 01M7AGT8HXEGTCEBNHD570SJNW"]
+  next_action: "验收项③（chip 计数区源故障标识）未做：chip 数据路径不经 panel progress.json、拿不到 source_issues，接入需高频 status --cached 轮询，低频故障场景性价比待业主裁决；页面横幅部分已交付，待业主验收后决定 ③ 去留。"
+  evidence: ["bmr 事故复盘 2026-11-13：SourceConflict 期间面板 total=0，无故障提示；修复 receipt 01M7AGT8HXEGTCEBNHD570SJNW", "TDD 先行：progress-view/client-page 两用例先红后绿。实现：lib/progress.js 并行采集 awr status --cached（零写入、失败降级 undefined）；lib/progress-view.js 新增 sourceIssuesView（≤4 条、message 截 200、缺 message 回退 code）并挂进 buildProgress（可选字段，schema 不升版）；50-page.js SourceIssues 红色故障带（错误码 code 样式 + AWR 原始消息 + awr intake inspect / awr source reindex 修复指引，空台账时同时显示）+ 空态分流 data-reason=sourcebroken；中英双语文案 10 条。验收项①说明：awr 0.7.0 source_issues 不提供受影响项数字段，消息原文携带受影响 work item id。测试 405 tests / 376 pass / 0 fail / 29 skip。commit d3bff10 已推 refactor/ground-up-redesign。"]
