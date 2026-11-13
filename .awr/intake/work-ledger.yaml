@@ -630,12 +630,16 @@ work_items:
   acceptance:
   - "『下一步』不再透出整段原文：渲染为 一句话结论（下一步做什么）+ 归属（工作项 id/负责人/阻塞标记）+ 可量化指标（主线 x/y、台账 x/y、验收标准条数）三层结构；无结构化数据时优雅降级为截断原文+展开。口径修正(22:05)：AWR accounting 明确 never invent a blended completion percent，故不出「目标完成 %」，改为原样贴出 AWR 的核算声明。"
   - "host 侧 next_action 结构化解析（或新增 nextStep 可选字段：summary/blocks[]/refs[]/checklist 进度），progress.json 向后兼容不升 schema 破坏旧字段。"
-  - "页面整体分区块对标上下文 tab：结论先行、分桶归因（按状态/优先级）、留白诚实；改动有 harness 用例覆盖。"
+  - "页面整体分区块对标上下文 tab：结论先行、分桶归因（按状态/优先级）、留白诚实；改动有 harness 用例覆盖。口径补充(P0-B)：每个指标自带口径说明（title），空态分 none/broken/filtered 三类并说明为什么空、何时会满，状态条以全台账为基线、未开始用斜纹、全页零百分比；图例与主线互为筛选器，生效条件全部具名摆在明面上且可单独清除。"
   - "业主对新版页面明确点头才算完成；node --test 全绿。"
-  next_action: "P0-A（三层下一步卡）已落地并推送 30a3736。等业主回答设计稿三个确认点（①三层层序 ②是否接受不出混合完成率 ③本轮范围是否含 P1 的此刻在做+事件流）；未点头前继续按 create-mode 做 P0-B（口径 tooltip、空态三分类、斜纹堆叠条、图例联动筛选），业主若改口径再按新口径调。最终仍要业主真机点头才算完成。"
+  next_action: "P0-A（三层下一步卡，30a3736）与 P0-B（数字自带口径 / 空态三分类 / 全台账基线斜纹条，ba569e4；图例×主线交叉筛选＋具名筛选条，bbea0e5）均已落地，全仓页面已零百分比。等业主回答三个确认点（①三层层序 ②是否接受不出混合完成率 ③本轮是否连带 P1 的此刻在做+事件流）；未点头前按 create-mode 继续推 P1（会话条带 work_item_id 与起始 revision、台账事件流真实空态）。最终仍要业主真机点头才算完成。"
   evidence:
   - "docs/design-20261113/progress-page-benchmark.md — 对标对象查证（dsh-context 0.83.1）+ 10 条可复制设计 DNA（含插件真实中文文案原文）+ 逐区块对照表（每张卡片的真实数据源与现状）+ 三层下一步取数规则 + P0/P1/P2 分期"
   - "docs/design-20261113/progress-page-mockup.html — 高保真稿，数据全部来自 awr overview snapshot --json rev 118 真实输出（46 项/完成 42/进行 2/待开始 2/阻塞 0，主线 DSH 41/45，6 个活跃会话含 work_item_id 与起始 revision，事件流为空数组故如实显示空态）；口径 tooltip 与 AWR accounting 反伪完成率声明原样呈现"
   - "commit 30a3736 feat(progress): 下一步卡片按三层作答 — lib/progress-view.js 新增 headlineOf/linksOf 与 next.{headline,links,lane,claimed,claimedBy,checklist,changedAt} + 顶层 guidance{basis,when,recheck}（全部可选，schema 仍为 2，旧文件降级为整行）；client/50-page.js 新增 NextStep 卡片（结论/归因/指标/展开四层，含 AWR 核算原话与「AWR 不记录勾选状态」诚实声明）；中英 i18n 同步；docs/progress-page.md 写入取数规则与不出混合完成率的理由"
   - "真实快照 rev 120 实测（node 调 buildProgress）：headline『PR #1 已开』、links=[PR #1]、lane DSH 41/45、台账 46 项完成 42、验收标准 2 条（业主写的原文，占位符被丢弃）、changedAt 为最近事件、accounting 原话照抄；未新增任何百分比"
   - "测试：node --test test/*.test.js → 410 项 381 通过 / 29 跳过 / 0 失败（新增 host 3 例 + client 2 例，含旧 host 降级用例与 i18n 双语对齐用例）"
+  - "commit ba569e4 feat(page): 每个数字自带口径、空态分三类、堆叠条按全台账为基线（P0-B 第一批）— 新增 EmptyState(kind: none|broken|filtered)：三种空各说清为什么空、filtered 带『清空筛选』入口，区块空了不再整块消失（需要你处理=0 时明说『没有卡住的、没有等待的』是好消息）；目标带四格/状态计数/条段/图例/主线计数/验收清单/更新时间全部挂 title 口径；状态条去掉 29% 改为『42/ 46 已完成 + 只数条数不给完成率』，基线取整本台账、未开始部分画斜纹而不是假装 100%"
+  - "commit bbea0e5 feat(page): 图例与主线互为筛选器（P0-B 第二批）— 主线标题与状态图例同为筛选按钮（aria-pressed/data-off 标记未选项），条件相乘生效；页面顶部新增具名筛选条 awr-filters：显示『现在显示 2 / 7』与每条可单独摘掉的条件＋全部清空；中英文案各 20 余条同步（parity 用例约束）"
+  - "真实快照 rev 122 实测（awr overview snapshot --refresh > /tmp/snap122.json，双语渲染走 harness）：状态条文案『42/ 46 已完成 / 这里只数条数，不给完成率：AWR 拒绝混合完成率。』、条段 done 91% + active 7% + ready 2%（斜纹，基线 46）、全页 0 处 \\d+%；需要你处理=0 显示『没有卡住的，没有等待的，也没有等着确认的目标。』；点主线 DSH →『现在显示 4 / 46』，再叠加进行中 → 3 张卡片，全部清空后恢复 4 张"
+  - "测试：node --test test/*.test.js → 414 项 385 通过 / 29 跳过 / 0 失败（P0-B 新增 3 例：口径全覆盖、空态三分类＋区块不消失、图例×主线交叉筛选；旧 29% 断言按新口径重写为条数+口径+无百分比）；docs/progress-page.md 补『每个数字说清怎么数出来的』三规则"
