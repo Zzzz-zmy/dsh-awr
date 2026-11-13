@@ -203,8 +203,8 @@ function GoalBand({ progress, nodes, t, onPick }) {
         : h('div', { style: { fontSize: 14, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.who.none')))),
     h('div', { 'data-cell': 'next', style: { minWidth: 0 } }, label(t('band.next')),
       progress.next?.text
-        ? h('button', { type: 'button', className: 'awr-link', 'id': 'awr-band-next', style: { textAlign: 'left', fontSize: 13, lineHeight: '20px', color: C.text }, onClick: () => onPick(progress.next.key) },
-          h('span', { className: 'awr-clamp2' }, progress.next.text))
+        ? h('button', { type: 'button', className: 'awr-link', 'id': 'awr-band-next', title: progress.next.text, style: { textAlign: 'left', fontSize: 13, lineHeight: '20px', color: C.text }, onClick: () => onPick(progress.next.key) },
+          h('span', { className: 'awr-clamp2' }, progress.next.headline ?? progress.next.text))
         : h('div', { style: { fontSize: 13, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.next.none')))))
 }
 
@@ -290,6 +290,70 @@ function AccountingFacts({ accounting, t }) {
       : h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 6 } },
         h('span', { style: { transform: 'translateY(6px)' } }, h(Light, { state: 'waiting', size: 7 })),
         h('span', { title: accounting.detail ? `${accounting.reason ?? ''} ${accounting.detail}` : undefined, style: { fontSize: 13, lineHeight: '20px', color: C.text2, minWidth: 0 } }, t('accounting.notyet'))))
+}
+
+/**
+ * The next step, told in the three layers a person reads: the sentence to act on, why it is on them, and what it
+ * moves. The line, the reason and the numbers are AWR's words and AWR's counts; a fact AWR does not have leaves its
+ * row out instead of being filled in.
+ */
+function NextStep({ next, guidance, accounting, counts, t, onPick }) {
+  if (!next) return null
+  const links = Array.isArray(next.links) ? next.links : []
+  const checklist = Array.isArray(next.checklist) ? next.checklist : []
+  const notPercent = accounting && accounting.available !== true && typeof accounting.detail === 'string' ? accounting.detail.trim() : ''
+  const chips = []
+  if (next.lane) chips.push({ key: 'lane', tip: t('step.lane.tip'), text: `${t('step.lane', { id: next.lane.id })} ${next.lane.done} / ${next.lane.total}` })
+  if (counts?.total) chips.push({ key: 'ledger', text: t('step.ledger', { total: counts.total, done: counts.done ?? 0 }) })
+  if (checklist.length) chips.push({ key: 'acceptance', text: t('step.acceptance', { n: checklist.length }) })
+  // The reason it is on you: what it is stuck on, what it waits for, and failing both, who has it. An older host
+  // gives only the line, which for stuck and waiting work is exactly that reason.
+  const held = next.claimedBy ? t('step.held', { who: next.claimedBy }) : next.claimed ? t('step.claimed') : t('step.unheld')
+  const stuck = next.blocker ?? (next.state === 'blocked' ? next.text : undefined)
+  const waits = next.wait ? (next.wait.release ? `${next.wait.summary} — ${next.wait.release}` : next.wait.summary) : next.state === 'waiting' ? next.text : undefined
+  const why = stuck ?? waits ?? held
+  const box = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 8px', borderRadius: 6, background: C.raised, color: C.text2, fontSize: 12, lineHeight: '18px', fontVariantNumeric: 'tabular-nums' }
+  return h('section', { 'data-testid': 'awr-nextstep', style: { marginTop: 20, padding: '16px 18px', border: `.5px solid ${C.line2}`, borderRadius: 12, background: C.surface } },
+    h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 } },
+      h('div', { style: P.label }, t('step.title')),
+      next.changedAt ? h('div', { 'data-testid': 'awr-nextstep-when', title: clock(next.changedAt), style: { fontSize: 12, lineHeight: '16px', color: C.faint, fontVariantNumeric: 'tabular-nums', flex: 'none' } }, ago(next.changedAt, t)) : null),
+    h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8 } },
+      h('span', { style: { marginTop: 6, flex: 'none' } }, h(Light, { state: next.state })),
+      h('button', { type: 'button', id: 'awr-nextstep-open', className: 'awr-link', style: { textAlign: 'left', fontSize: 16, lineHeight: '24px', fontWeight: 500, color: C.text }, onClick: () => onPick(next.key) },
+        next.headline ?? h('span', { className: 'awr-clamp2' }, next.text))),
+    links.length
+      ? h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 6, paddingLeft: 19 } },
+        ...links.map((link) => h('a', { key: link, href: link, target: '_blank', rel: 'noreferrer', title: link, style: { fontSize: 12, lineHeight: '18px', color: C.text2, overflowWrap: 'anywhere' } }, link.replace(/^https?:\/\//, ''))))
+      : null,
+    h('div', { style: { marginTop: 12 } }, h('div', { style: P.label }, stuck ? t('step.blocked') : waits ? t('step.wait') : t('step.why'))),
+    h('div', { 'data-testid': 'awr-nextstep-why', style: { display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 4, fontSize: 13, lineHeight: '20px', color: stuck ? C.warn : C.text2 } },
+      h('span', { style: { minWidth: 0 } }, why),
+      stuck || waits ? null : h('span', { title: next.claimedBy || next.claimed ? undefined : t('step.unheld.tip'), style: { color: C.faint, cursor: 'help' } }, 'ⓘ')),
+    notPercent
+      ? h('div', { title: notPercent, style: { marginTop: 8, padding: '6px 8px', borderRadius: 6, background: C.code, color: C.text3, fontFamily: C.mono, fontSize: 11, lineHeight: '16px', overflowWrap: 'anywhere' } }, notPercent)
+      : null,
+    h('div', { style: P.rule }),
+    h('div', { style: P.label }, t('step.facts')),
+    h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 } }, ...chips.map((chip) => h('span', { key: chip.key, title: chip.tip, style: box }, chip.text))),
+    checklist.length
+      ? h('div', { style: { marginTop: 10 } },
+        h('div', { style: { ...P.label, marginBottom: 4 } }, t('step.checklist')),
+        h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 4 } },
+          ...checklist.map((item) => h('li', { key: item, style: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, lineHeight: '20px', color: C.text2 } },
+            h('span', { 'data-check': 'unmarked', style: { width: 10, height: 10, flex: 'none', marginTop: 5, borderRadius: 2, border: `.5px solid ${C.faint}` } }),
+            h('span', { style: { minWidth: 0 } }, item)))),
+        h('div', { style: { marginTop: 6, fontSize: 12, lineHeight: '18px', color: C.faint } }, t('step.checklist.unmarked')))
+      : h('div', { style: { marginTop: 10, fontSize: 12, lineHeight: '18px', color: C.text3 } }, t('step.checklist.none')),
+    next.headline && next.headline !== next.text
+      ? h('div', { style: { marginTop: 12 } }, h(Fold, { label: t('step.whole') }, h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text2, overflowWrap: 'anywhere' } }, next.text)))
+      : null,
+    guidance
+      ? h('div', { style: { marginTop: 12, paddingTop: 10, borderTop: `.5px solid ${C.line}`, fontSize: 12, lineHeight: '18px', color: C.text3, display: 'grid', gap: 2 } },
+        h('div', { 'data-testid': 'awr-nextstep-basis' }, t('step.basis', { basis: guidance.basis })),
+        guidance.when || guidance.recheck
+          ? h('div', null, [guidance.when ? t('step.when', { when: guidance.when }) : undefined, guidance.recheck ? t('step.recheck', { recheck: guidance.recheck }) : undefined].filter(Boolean).join(' · '))
+          : null)
+      : null)
 }
 
 /** What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request. */
@@ -582,6 +646,7 @@ function ProgressPage(props) {
       ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': progress.sourceIssues ? 'sourcebroken' : 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t(progress.sourceIssues ? 'empty.source.title' : 'empty.nowork.title')), h('p', { style: P.body }, t(progress.sourceIssues ? 'empty.source.body' : 'empty.nowork.body')))
       : h(React.Fragment, null,
           h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
+          h(NextStep, { next: progress.next, guidance: progress.guidance, accounting: progress.accounting, counts: progress.counts, t, onPick: (key) => setSelected(key) }),
           h('div', { style: { marginTop: 24 } }, h(Gauge, { counts: progress.counts, t, only, onOnly: setOnly })),
           h(Needs, { items: [...(organization?.ready === false ? [{ kind: 'setup', title: t('needs.setup.title'), detail: t('needs.setup', { n: organization.gaps ?? 0 }) }] : []), ...(progress.attention ?? [])], t, onPick: (key) => setSelected(key) }),
 

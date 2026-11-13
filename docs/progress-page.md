@@ -7,14 +7,17 @@ stands; this tab is where a person looks at the project.
 
 ## What it shows
 
-1. **The gauge.** One number ("30 / 31 done") and one bar, in which each part is a state: done (ink), in progress,
+1. **The band and the next step.** Four questions across the top — the goal, how far along, whose turn, the next
+   step — and under them one card that answers the next step in three layers: the sentence, why it is on you, what it
+   moves (see below).
+2. **The gauge.** One number ("30 / 31 done") and one bar, in which each part is a state: done (ink), in progress,
    blocked, waiting, ready, not started. The legend under it counts them and filters the page by a click.
-2. **Needs you.** Work with a recorded blocker, with the reason; goals nobody confirmed; and, while the project is
+3. **Needs you.** Work with a recorded blocker, with the reason; goals nobody confirmed; and, while the project is
    incomplete, one item saying so (below). Three at first, the rest on request.
-3. **The work, three ways**, one control: *Mainlines* (what is left in each mainline, finished work folded),
+4. **The work, three ways**, one control: *Mainlines* (what is left in each mainline, finished work folded),
    *Dependencies* (what waits for what, in layers; pointing at a card lights its whole chain and dims the rest) and
    *Lanes* (the mainlines side by side, with the dependencies between them). Search, "show finished", zoom and fit.
-4. **The details of one piece of work**, in a drawer: its state, what blocks it, the next step, what it is done when,
+5. **The details of one piece of work**, in a drawer: its state, what blocks it, the next step, what it is done when,
    what it depends on and what it unlocks (each a link to that work). Identifiers and the source file are folded under
    **Technical details**.
 
@@ -32,8 +35,26 @@ a hash; that is no criterion, so the drawer shows no "done when" for it. A crite
 `awr overview snapshot [--refresh] --json` (`work_graph`, `nav.mainline_graph`, `goals`, `sessions`), turned into the
 view by `lib/progress-view.js` (`buildProgress`: nodes with a state, edges, lanes, counts, what needs the person, and the
 identifiers apart in `tech`) and written by `lib/progress.js` to
-`<home>/.local/state/dsh-awr/panel/<conversation>.progress.json`, `schema: 1`. The tab reads the file through DeepSeek
+`<home>/.local/state/dsh-awr/panel/<conversation>.progress.json`, `schema: 2`. The tab reads the file through DeepSeek
 Harness's workspace-file service, so reading puts nothing in the conversation (`docs/conversation-rows.md`).
+
+### The next step, in the three layers a person reads (DSH-079)
+
+`next` answers three questions in one card, and every word of it is what AWR already says:
+
+| Layer | Field | Where it comes from |
+| --- | --- | --- |
+| What to do | `text`, `headline`, `links` | `next_action`, else `blocker`, else the first `explainable_waits` summary. `headline` is that line stopped where a person stops reading — a URL comes out of it and is shown beside it as `links`, a bracket starts a footnote, and what is left over is cut at 40 characters with an ellipsis rather than finished by guess. |
+| Why it is on you | `blocker`, `wait`, `claimed`, `claimedBy` | the same three facts, per piece of work. Nothing claimed says so out loud; it is never written as "nobody is doing it". |
+| What it moves | `lane {id,done,total}`, `checklist`, `changedAt` | the lane's own count from the ledger, the acceptance criteria AWR holds for that work, and its last event. |
+
+Beside it, `guidance {basis, when, recheck}` is AWR's own answer to "why this line, while when, look again when".
+The card shows **no completion percentage**: AWR's accounting says `never invent a blended completion percent`, so where
+its `detail` exists the card quotes it instead of computing a number. `checklist` has no tick — AWR keeps no check mark,
+and the card says so rather than drawing empty boxes as if they were unchecked by a person.
+
+All of it is optional: a file written by an older host has none of these fields and the card falls back to the whole
+line, so `schema` stays 2.
 
 - The host asks `awr capabilities` whether the awr has `overview snapshot` and never runs the command to find out: an
   awr that does not know it answers `Unsupported`, which poisons the plugin's use of that awr. An old awr gets a sentence

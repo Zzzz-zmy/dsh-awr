@@ -438,3 +438,49 @@ test('a broken ledger source gets a loud banner instead of a quiet empty page', 
   const plain = await page()
   assert.equal(plain.ui.byTestId('awr-source-issues'), undefined, 'a sound source shows no banner')
 })
+
+test('the next step is read in three layers: the sentence, why it is yours, what it moves', async () => {
+  const rich = () => {
+    const snap = snapshot()
+    snap.work_graph.nodes.find((node) => node.key === 'A-4').blocker = 'Open the merge request: https://github.com/o/r/pull/1 (auto-merge is on). The owner checks the eight pixels first.'
+    snap.nav.mainline_graph.nodes.push({ work_key: 'A-4', outcomes: ['A PDF can be uploaded'], explainable_waits: [] })
+    snap.nav.guidance = { basis: 'Work A-4 (who can see what)', when: 'the ledger changes', recheck: 'a claim conflict or a source change' }
+    snap.nav.accounting = { available: false, authoritative: false, detail: 'Attach the approved scope output; never invent a blended completion percent' }
+    return buildProgress(snap)
+  }
+  const { ui } = await page({ progress: rich })
+  const card = ui.byTestId('awr-nextstep')
+  assert.ok(card, 'the page carries a next step of its own, not one line in the band')
+  assert.match(textOf(ui.byId('awr-nextstep-open')), /^Open the merge request$/, 'the first layer is one sentence, without the address in it')
+  const links = ui.all((node) => node.type === 'a')
+  assert.deepEqual(links.map((node) => node.props.href), ['https://github.com/o/r/pull/1'], 'the address is handed over beside the sentence')
+  assert.match(textOf(ui.byTestId('awr-nextstep-why')), /^Open the merge request: https:\/\/github\.com\/o\/r\/pull\/1 \(auto-merge is on\)/, 'the second layer repeats the reason in full, address and all')
+  assert.match(textOf(card), /Stuck onOpen the merge request/, 'and names it as what the work is stuck on')
+  const facts = textOf(card)
+  assert.match(facts, /Mainline A 1 \/ 4/, 'the third layer is a real lane count, taken from the ledger')
+  assert.match(facts, /7 in the ledger, 2 done/, 'and the size of the ledger beside it')
+  assert.match(facts, /It is finished whenA PDF can be uploaded/, 'what the work has to achieve travels with it')
+  assert.match(facts, /AWR keeps no check mark against these/, 'the list says it cannot show a tick, instead of faking one')
+  assert.match(facts, /Why this line: Work A-4 \(who can see what\)/, 'AWR is asked why this is the line, and its answer is shown')
+  assert.match(facts, /never invent a blended completion percent/, 'what AWR withholds is quoted, not filled in')
+  assert.equal(facts.includes('%'), false, 'the card shows no invented percentage')
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'A-4'))
+  await settle()
+  assert.match(textOf(ui.byTestId('awr-detail')), /Blocked byOpen the merge request/, 'the card opens that piece of work')
+})
+
+test('a next step written by an older host still reads, and shows no empty rows', async () => {
+  const plain = () => {
+    const view = buildProgress(snapshot())
+    return { ...view, next: { key: 'A-4', state: 'blocked', text: 'The owner has to decide about interns' } }
+  }
+  const { ui } = await page({ progress: plain })
+  const card = ui.byTestId('awr-nextstep')
+  assert.ok(card, 'a card without the new fields is still a card')
+  assert.match(textOf(ui.byId('awr-nextstep-open')), /The owner has to decide about interns/, 'the whole line is used when there is no headline')
+  assert.match(textOf(ui.byTestId('awr-nextstep-why')), /^The owner has to decide about interns$/, 'a blocked step names what it is stuck on, even when the older host gave only the line')
+  assert.match(textOf(card), /AWR has no acceptance criteria/, 'no criteria, said plainly')
+  assert.equal(ui.all((node) => node.type === 'a').length, 0, 'no links, no link row')
+  assert.equal(ui.byTestId('awr-nextstep-when'), undefined, 'no timestamp, no timestamp row')
+  assert.equal(ui.byTestId('awr-nextstep-basis'), undefined, 'AWR said nothing about why, so the page says nothing either')
+})

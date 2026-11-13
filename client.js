@@ -166,6 +166,32 @@ window.__ModuleLoader__.load({
       'band.next': 'Next step',
       'band.next.none': 'Nothing to move right now',
       'band.cells': '{done} of {total} pieces of work done',
+      'step.title': 'What you do now',
+      'step.why': 'Why it is on you',
+      'step.facts': 'What it moves',
+      'step.open': 'Open',
+      'step.whole': 'The whole step',
+      'step.held': 'In the hands of {who}',
+      'step.claimed': 'A conversation has taken it; AWR records no name',
+      'step.unheld': 'AWR records no claim, so nobody has it',
+      'step.unheld.tip': 'AWR has no active claim on this piece of work: nothing is lost, it is simply not taken yet.',
+      'step.blocked': 'Stuck on',
+      'step.wait': 'It waits for',
+      'step.checklist': 'It is finished when',
+      'step.checklist.unmarked': 'AWR keeps no check mark against these, so none is shown.',
+      'step.checklist.none': 'AWR has no acceptance criteria for this piece of work.',
+      'step.lane': 'Mainline {id}',
+      'step.lane.tip': 'How far this mainline is: done / total, from the ledger itself.',
+      'step.acceptance': '{n} done-when criteria',
+      'step.ledger': '{total} in the ledger, {done} done',
+      'step.basis': 'Why this line: {basis}',
+      'step.when': 'It applies while: {when}',
+      'step.recheck': 'Look again when: {recheck}',
+      'step.notpercent': 'AWR withholds a blended completion percent: {detail}',
+      'time.just': 'just now',
+      'time.min': '{n} min ago',
+      'time.hour': '{n} h ago',
+      'time.day': '{n} d ago',
 
       'coverage.title': 'What this AWR can do',
       'coverage.answered': '{n} of {total} answered',
@@ -388,6 +414,32 @@ window.__ModuleLoader__.load({
       'band.next': '下一步做什么',
       'band.next.none': '暂时没有可推进的',
       'band.cells': '{total} 项工作已完成 {done} 项',
+      'step.title': '现在该做什么',
+      'step.why': '为什么轮到你',
+      'step.facts': '它推动什么',
+      'step.open': '打开',
+      'step.whole': '完整的一条',
+      'step.held': '在 {who} 手上',
+      'step.claimed': '有一段会话接手了，AWR 没有记下名字',
+      'step.unheld': 'AWR 里没有认领记录，还没人接手',
+      'step.unheld.tip': 'AWR 的 active_claims 是空的：不是丢了，是还没有人认领。',
+      'step.blocked': '卡在',
+      'step.wait': '它在等',
+      'step.checklist': '做到这些才算完',
+      'step.checklist.unmarked': 'AWR 不记录勾选状态，所以这里没有勾。',
+      'step.checklist.none': 'AWR 里没有这项工作的验收标准。',
+      'step.lane': '主线 {id}',
+      'step.lane.tip': '这条主线走到哪了：已完成 / 总数，直接来自台账。',
+      'step.acceptance': '验收标准 {n} 条',
+      'step.ledger': '台账共 {total} 项，已完成 {done} 项',
+      'step.basis': '为什么是这条线：{basis}',
+      'step.when': '什么时候算数：{when}',
+      'step.recheck': '什么时候再看：{recheck}',
+      'step.notpercent': 'AWR 拒绝给混合完成率：{detail}',
+      'time.just': '刚刚',
+      'time.min': '{n} 分钟前',
+      'time.hour': '{n} 小时前',
+      'time.day': '{n} 天前',
 
       'coverage.title': '本机的 AWR 能做什么',
       'coverage.answered': '{total} 项能力应答 {n} 项',
@@ -695,6 +747,16 @@ window.__ModuleLoader__.load({
     const clock = (ms) => {
       const date = new Date(ms)
       return Number.isFinite(date.getTime()) ? `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : ''
+    }
+    /** When something happened, in the distance a person is standing at: minutes, then hours, then days. */
+    const ago = (ms, t) => {
+      if (!Number.isFinite(ms)) return ''
+      const mins = Math.floor((Date.now() - ms) / 60000)
+      if (mins < 1) return t('time.just')
+      if (mins < 60) return t('time.min', { n: mins })
+      const hours = Math.floor(mins / 60)
+      if (hours < 24) return t('time.hour', { n: hours })
+      return t('time.day', { n: Math.floor(hours / 24) })
     }
 
     // ---- client/30-data.js ----
@@ -1509,8 +1571,8 @@ window.__ModuleLoader__.load({
             : h('div', { style: { fontSize: 14, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.who.none')))),
         h('div', { 'data-cell': 'next', style: { minWidth: 0 } }, label(t('band.next')),
           progress.next?.text
-            ? h('button', { type: 'button', className: 'awr-link', 'id': 'awr-band-next', style: { textAlign: 'left', fontSize: 13, lineHeight: '20px', color: C.text }, onClick: () => onPick(progress.next.key) },
-              h('span', { className: 'awr-clamp2' }, progress.next.text))
+            ? h('button', { type: 'button', className: 'awr-link', 'id': 'awr-band-next', title: progress.next.text, style: { textAlign: 'left', fontSize: 13, lineHeight: '20px', color: C.text }, onClick: () => onPick(progress.next.key) },
+              h('span', { className: 'awr-clamp2' }, progress.next.headline ?? progress.next.text))
             : h('div', { style: { fontSize: 13, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.next.none')))))
     }
 
@@ -1596,6 +1658,70 @@ window.__ModuleLoader__.load({
           : h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 6 } },
             h('span', { style: { transform: 'translateY(6px)' } }, h(Light, { state: 'waiting', size: 7 })),
             h('span', { title: accounting.detail ? `${accounting.reason ?? ''} ${accounting.detail}` : undefined, style: { fontSize: 13, lineHeight: '20px', color: C.text2, minWidth: 0 } }, t('accounting.notyet'))))
+    }
+
+    /**
+     * The next step, told in the three layers a person reads: the sentence to act on, why it is on them, and what it
+     * moves. The line, the reason and the numbers are AWR's words and AWR's counts; a fact AWR does not have leaves its
+     * row out instead of being filled in.
+     */
+    function NextStep({ next, guidance, accounting, counts, t, onPick }) {
+      if (!next) return null
+      const links = Array.isArray(next.links) ? next.links : []
+      const checklist = Array.isArray(next.checklist) ? next.checklist : []
+      const notPercent = accounting && accounting.available !== true && typeof accounting.detail === 'string' ? accounting.detail.trim() : ''
+      const chips = []
+      if (next.lane) chips.push({ key: 'lane', tip: t('step.lane.tip'), text: `${t('step.lane', { id: next.lane.id })} ${next.lane.done} / ${next.lane.total}` })
+      if (counts?.total) chips.push({ key: 'ledger', text: t('step.ledger', { total: counts.total, done: counts.done ?? 0 }) })
+      if (checklist.length) chips.push({ key: 'acceptance', text: t('step.acceptance', { n: checklist.length }) })
+      // The reason it is on you: what it is stuck on, what it waits for, and failing both, who has it. An older host
+      // gives only the line, which for stuck and waiting work is exactly that reason.
+      const held = next.claimedBy ? t('step.held', { who: next.claimedBy }) : next.claimed ? t('step.claimed') : t('step.unheld')
+      const stuck = next.blocker ?? (next.state === 'blocked' ? next.text : undefined)
+      const waits = next.wait ? (next.wait.release ? `${next.wait.summary} — ${next.wait.release}` : next.wait.summary) : next.state === 'waiting' ? next.text : undefined
+      const why = stuck ?? waits ?? held
+      const box = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 8px', borderRadius: 6, background: C.raised, color: C.text2, fontSize: 12, lineHeight: '18px', fontVariantNumeric: 'tabular-nums' }
+      return h('section', { 'data-testid': 'awr-nextstep', style: { marginTop: 20, padding: '16px 18px', border: `.5px solid ${C.line2}`, borderRadius: 12, background: C.surface } },
+        h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 } },
+          h('div', { style: P.label }, t('step.title')),
+          next.changedAt ? h('div', { 'data-testid': 'awr-nextstep-when', title: clock(next.changedAt), style: { fontSize: 12, lineHeight: '16px', color: C.faint, fontVariantNumeric: 'tabular-nums', flex: 'none' } }, ago(next.changedAt, t)) : null),
+        h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8 } },
+          h('span', { style: { marginTop: 6, flex: 'none' } }, h(Light, { state: next.state })),
+          h('button', { type: 'button', id: 'awr-nextstep-open', className: 'awr-link', style: { textAlign: 'left', fontSize: 16, lineHeight: '24px', fontWeight: 500, color: C.text }, onClick: () => onPick(next.key) },
+            next.headline ?? h('span', { className: 'awr-clamp2' }, next.text))),
+        links.length
+          ? h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 6, paddingLeft: 19 } },
+            ...links.map((link) => h('a', { key: link, href: link, target: '_blank', rel: 'noreferrer', title: link, style: { fontSize: 12, lineHeight: '18px', color: C.text2, overflowWrap: 'anywhere' } }, link.replace(/^https?:\/\//, ''))))
+          : null,
+        h('div', { style: { marginTop: 12 } }, h('div', { style: P.label }, stuck ? t('step.blocked') : waits ? t('step.wait') : t('step.why'))),
+        h('div', { 'data-testid': 'awr-nextstep-why', style: { display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 4, fontSize: 13, lineHeight: '20px', color: stuck ? C.warn : C.text2 } },
+          h('span', { style: { minWidth: 0 } }, why),
+          stuck || waits ? null : h('span', { title: next.claimedBy || next.claimed ? undefined : t('step.unheld.tip'), style: { color: C.faint, cursor: 'help' } }, 'ⓘ')),
+        notPercent
+          ? h('div', { title: notPercent, style: { marginTop: 8, padding: '6px 8px', borderRadius: 6, background: C.code, color: C.text3, fontFamily: C.mono, fontSize: 11, lineHeight: '16px', overflowWrap: 'anywhere' } }, notPercent)
+          : null,
+        h('div', { style: P.rule }),
+        h('div', { style: P.label }, t('step.facts')),
+        h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 } }, ...chips.map((chip) => h('span', { key: chip.key, title: chip.tip, style: box }, chip.text))),
+        checklist.length
+          ? h('div', { style: { marginTop: 10 } },
+            h('div', { style: { ...P.label, marginBottom: 4 } }, t('step.checklist')),
+            h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 4 } },
+              ...checklist.map((item) => h('li', { key: item, style: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, lineHeight: '20px', color: C.text2 } },
+                h('span', { 'data-check': 'unmarked', style: { width: 10, height: 10, flex: 'none', marginTop: 5, borderRadius: 2, border: `.5px solid ${C.faint}` } }),
+                h('span', { style: { minWidth: 0 } }, item)))),
+            h('div', { style: { marginTop: 6, fontSize: 12, lineHeight: '18px', color: C.faint } }, t('step.checklist.unmarked')))
+          : h('div', { style: { marginTop: 10, fontSize: 12, lineHeight: '18px', color: C.text3 } }, t('step.checklist.none')),
+        next.headline && next.headline !== next.text
+          ? h('div', { style: { marginTop: 12 } }, h(Fold, { label: t('step.whole') }, h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text2, overflowWrap: 'anywhere' } }, next.text)))
+          : null,
+        guidance
+          ? h('div', { style: { marginTop: 12, paddingTop: 10, borderTop: `.5px solid ${C.line}`, fontSize: 12, lineHeight: '18px', color: C.text3, display: 'grid', gap: 2 } },
+            h('div', { 'data-testid': 'awr-nextstep-basis' }, t('step.basis', { basis: guidance.basis })),
+            guidance.when || guidance.recheck
+              ? h('div', null, [guidance.when ? t('step.when', { when: guidance.when }) : undefined, guidance.recheck ? t('step.recheck', { recheck: guidance.recheck }) : undefined].filter(Boolean).join(' · '))
+              : null)
+          : null)
     }
 
     /** What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request. */
@@ -1888,6 +2014,7 @@ window.__ModuleLoader__.load({
           ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': progress.sourceIssues ? 'sourcebroken' : 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t(progress.sourceIssues ? 'empty.source.title' : 'empty.nowork.title')), h('p', { style: P.body }, t(progress.sourceIssues ? 'empty.source.body' : 'empty.nowork.body')))
           : h(React.Fragment, null,
               h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
+              h(NextStep, { next: progress.next, guidance: progress.guidance, accounting: progress.accounting, counts: progress.counts, t, onPick: (key) => setSelected(key) }),
               h('div', { style: { marginTop: 24 } }, h(Gauge, { counts: progress.counts, t, only, onOnly: setOnly })),
               h(Needs, { items: [...(organization?.ready === false ? [{ kind: 'setup', title: t('needs.setup.title'), detail: t('needs.setup', { n: organization.gaps ?? 0 }) }] : []), ...(progress.attention ?? [])], t, onPick: (key) => setSelected(key) }),
 

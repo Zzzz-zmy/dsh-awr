@@ -209,3 +209,13 @@ const clock = (ms) => {
   const date = new Date(ms)
   return Number.isFinite(date.getTime()) ? `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : ''
 }
+/** When something happened, in the distance a person is standing at: minutes, then hours, then days. */
+const ago = (ms, t) => {
+  if (!Number.isFinite(ms)) return ''
+  const mins = Math.floor((Date.now() - ms) / 60000)
+  if (mins < 1) return t('time.just')
+  if (mins < 60) return t('time.min', { n: mins })
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return t('time.hour', { n: hours })
+  return t('time.day', { n: Math.floor(hours / 24) })
+}

@@ -1,7 +1,7 @@
 // The project's progress for the page (DSH-062): AWR's snapshot turned into nodes a person understands.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { buildProgress, layers, mainlineOf, OTHER_LANE, outcomesOf, stateOf } from '../lib/progress-view.js'
+import { buildProgress, headlineOf, layers, linksOf, mainlineOf, OTHER_LANE, outcomesOf, stateOf } from '../lib/progress-view.js'
 
 const node = (key, patch = {}) => ({ key, title: `Work ${key}`, status: 'planned', ready: false, blocker: null, active_claims: [], archived: false, next_action: null, source_ref: { locator: 'file:///p/.awr/intake/work-ledger.yaml', pointer: `/work_items/${key}` }, ...patch })
 const edge = (from, to, extra = {}) => ({ from, to, required: true, ...extra })
@@ -187,7 +187,15 @@ test('the view answers the four questions and says honestly why work waits', () 
   ), { now: 1000 })
   assert.equal(view.schema, 2)
   assert.deepEqual(view.goal, { title: 'Everyone can find a document', status: 'active' }, 'the confirmed goal is the goal')
-  assert.deepEqual(view.next, { key: 'A', state: 'active', text: 'Write the tests' }, 'the next step is actionable work, with its key')
+  assert.deepEqual(view.next, {
+    key: 'A',
+    state: 'active',
+    text: 'Write the tests',
+    headline: 'Write the tests',
+    lane: { id: '~other', done: 0, total: 2 },
+    claimed: true,
+    claimedBy: 'bot-1',
+  }, 'the next step is actionable work, with its key, its sentence, its mainline and who holds it')
   const byKey = Object.fromEntries(view.nodes.map((n) => [n.key, n]))
   assert.equal(byKey.A.claimedBy, 'bot-1', 'whose turn has a name')
   assert.deepEqual(byKey.B.wait, { summary: 'Waiting on outcome of A', release: 'Complete and accept A' })
@@ -237,4 +245,54 @@ test('a broken source is shown as what is broken, never as an empty ledger', () 
   assert.equal(buildProgress(snapshot([node('A-1')])).sourceIssues, undefined, 'a source nobody asked about has no complaint')
   assert.equal(buildProgress(snapshot([node('A-1')]), { status: { source_issues: [] } }).sourceIssues, undefined, 'no issue, no banner')
   assert.equal(buildProgress(snapshot([node('A-1')]), { status: { source_issues: [{ code: 'x' }, null] } }).sourceIssues.length, 1, 'only what the source actually says')
+})
+
+test('a headline stops where a person stops reading and never finishes the sentence by guess', () => {
+  assert.equal(headlineOf('推倒重来：节点4 交付。剩余 4 项待业主验收'), '推倒重来：节点4 交付')
+  assert.equal(headlineOf('PR #1 已开：https://github.com/o/r/pull/1 （可自动合并，403 项 0 失败）'), 'PR #1 已开', 'an address is where it points, a bracket is a footnote')
+  assert.equal(headlineOf('已在本地完成并通过全部测试'), '已在本地完成并通过全部测试', 'a sentence already short is kept word for word')
+  assert.equal(headlineOf('x'.repeat(60)).length, 41, 'a long line is cut short and marked, never rewritten')
+  assert.ok(headlineOf('x'.repeat(60)).endsWith('…'))
+  assert.equal(headlineOf('https://github.com/o/r/pull/1'), undefined, 'an address alone says nothing')
+  assert.equal(headlineOf(''), undefined)
+  assert.deepEqual(linksOf('见 https://github.com/o/r/pull/1 与 https://a.example/x 及 https://b.example/y'), ['https://github.com/o/r/pull/1', 'https://a.example/x'], 'at most two addresses')
+  assert.equal(linksOf('没有链接'), undefined, 'nothing to open, nothing to show')
+})
+
+test('the next step is a sentence, why it is yours, and what it moves — all of it copied from AWR', () => {
+  const view = buildProgress(snapshot(
+    [
+      node('DSH-077', {
+        status: 'in_progress',
+        next_action: 'PR #1 已开：https://github.com/o/r/pull/1 （可自动合并）。等业主按八项像素验收后合并。',
+        active_claims: [{ agent_id: 'bot-1' }],
+        last_event_at: 1700,
+      }),
+      node('DSH-078', { status: 'completed' }),
+      node('DSH-079'),
+    ],
+    [],
+    {
+      nav: {
+        project: { name: 'demo' },
+        mainline_graph: { nodes: [{ work_key: 'DSH-077', outcomes: ['页面在真实数据下可读' ] }] },
+        guidance: { basis: 'Work DSH-077 (节点4)', when: '台账变化时', recheck: '刷新' },
+      },
+    },
+  ), { now: 1000 })
+  assert.equal(view.next.headline, 'PR #1 已开')
+  assert.deepEqual(view.next.links, ['https://github.com/o/r/pull/1'])
+  assert.equal(view.next.text, 'PR #1 已开：https://github.com/o/r/pull/1 （可自动合并）。等业主按八项像素验收后合并。', 'the full sentence is kept for the person who wants it')
+  assert.deepEqual(view.next.lane, { id: 'DSH', done: 1, total: 3 }, 'the metric is a real lane count, not a blended percent')
+  assert.equal(view.next.claimed, true)
+  assert.equal(view.next.claimedBy, 'bot-1')
+  assert.equal(view.next.changedAt, 1700)
+  assert.deepEqual(view.next.checklist, ['页面在真实数据下可读'], 'what it has to achieve travels with it')
+  assert.deepEqual(view.guidance, { basis: 'Work DSH-077 (节点4)', when: '台账变化时', recheck: '刷新' }, 'why this line and when to look again')
+})
+
+test('a next step with nothing beside it stays a next step, without invented facts', () => {
+  const view = buildProgress(snapshot([node('DSH-077', { status: 'in_progress', next_action: '写测试' }), node('DSH-078'), node('DSH-079')]))
+  assert.deepEqual(view.next, { key: 'DSH-077', state: 'active', text: '写测试', headline: '写测试', lane: { id: 'DSH', done: 0, total: 3 } })
+  assert.equal(view.guidance, undefined, 'AWR said nothing about why this line, so the page says nothing either')
 })
