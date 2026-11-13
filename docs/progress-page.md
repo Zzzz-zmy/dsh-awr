@@ -76,6 +76,21 @@ Three rules, all of them test-locked:
   is named in a row above the views with the count it produced (`2 of 7 shown`), each removable on its own, plus
   *Clear all*. Chips not selected dim rather than disappear, so it stays obvious what the alternatives were.
 
+### Whose hands are on it, and what the ledger wrote down (DSH-079 P1)
+
+Two sections answer questions a gauge cannot: *is anyone in there* and *what actually happened*.
+
+- **Right now** lists the sessions AWR has open on the project and the work each one claimed. A row is the work's own
+  title, the model running it and how long the session has been open; the ledger revision it started at sits in the
+  tooltip with the same 口径 discipline as everywhere else, and no internal id is printed anywhere. A session that
+  claimed nothing is named as one rather than dropped — a missing row reads as nobody working, which is a lie of
+  omission. AWR knows a session is open, not what a person is doing this second, and the copy says exactly that.
+- **Ledger events** is AWR's own history, newest first, in AWR's own words: summaries are a record, not copy, so they
+  are not translated. Each row links to the work it is about by that work's title. The host reads them with
+  `awr event history` because `awr overview snapshot` carries an empty window; the read is bounded, and when it is, the
+  section says so instead of implying it is everything. When the read comes back with nothing it says the read was
+  empty, and when the machine's awr will not hand the events over it says that — neither is presented as an idle project.
+
 - The host asks `awr capabilities` whether the awr has `overview snapshot` and never runs the command to find out: an
   awr that does not know it answers `Unsupported`, which poisons the plugin's use of that awr. An old awr gets a sentence
   saying so.

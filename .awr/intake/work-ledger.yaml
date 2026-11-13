@@ -631,8 +631,9 @@ work_items:
   - "『下一步』不再透出整段原文：渲染为 一句话结论（下一步做什么）+ 归属（工作项 id/负责人/阻塞标记）+ 可量化指标（主线 x/y、台账 x/y、验收标准条数）三层结构；无结构化数据时优雅降级为截断原文+展开。口径修正(22:05)：AWR accounting 明确 never invent a blended completion percent，故不出「目标完成 %」，改为原样贴出 AWR 的核算声明。"
   - "host 侧 next_action 结构化解析（或新增 nextStep 可选字段：summary/blocks[]/refs[]/checklist 进度），progress.json 向后兼容不升 schema 破坏旧字段。"
   - "页面整体分区块对标上下文 tab：结论先行、分桶归因（按状态/优先级）、留白诚实；改动有 harness 用例覆盖。口径补充(P0-B)：每个指标自带口径说明（title），空态分 none/broken/filtered 三类并说明为什么空、何时会满，状态条以全台账为基线、未开始用斜纹、全页零百分比；图例与主线互为筛选器，生效条件全部具名摆在明面上且可单独清除。"
+  - "口径补充(P1)：新增「此刻在做」（活跃会话→认领的工作项，标题具名、模型与起始台账 revision 进 tooltip，未认领会话保留并标注）与「台账事件」（AWR event history 有界读取，事件语义贴 AWR 原文不翻译，可展开/收起，截断时说明更早的还在台账里）。两块均只显工作项标题不显 id/ULID，点击落到对应工作项详情；读不到与读为空文案区分。"
   - "业主对新版页面明确点头才算完成；node --test 全绿。"
-  next_action: "P0-A（三层下一步卡，30a3736）与 P0-B（数字自带口径 / 空态三分类 / 全台账基线斜纹条，ba569e4；图例×主线交叉筛选＋具名筛选条，bbea0e5）均已落地，全仓页面已零百分比。等业主回答三个确认点（①三层层序 ②是否接受不出混合完成率 ③本轮是否连带 P1 的此刻在做+事件流）；未点头前按 create-mode 继续推 P1（会话条带 work_item_id 与起始 revision、台账事件流真实空态）。最终仍要业主真机点头才算完成。"
+  next_action: "P0-A/P0-B 与 P1（此刻在做＋台账事件，9413a79/ea9b137）均已落地推送。等业主回答三个确认点（①三层层序 ②是否接受不出混合完成率 ③是否还要 P2 编队/blocked-by 链）；未点头前按 create-mode 继续，但不再扩新板块，转向把 P0/P1 的细节按业主反馈调稳。最终仍要业主真机点头才算完成；PR #1 合并同时受 DSH-077 八项像素验收闸门。"
   evidence:
   - "docs/design-20261113/progress-page-benchmark.md — 对标对象查证（dsh-context 0.83.1）+ 10 条可复制设计 DNA（含插件真实中文文案原文）+ 逐区块对照表（每张卡片的真实数据源与现状）+ 三层下一步取数规则 + P0/P1/P2 分期"
   - "docs/design-20261113/progress-page-mockup.html — 高保真稿，数据全部来自 awr overview snapshot --json rev 118 真实输出（46 项/完成 42/进行 2/待开始 2/阻塞 0，主线 DSH 41/45，6 个活跃会话含 work_item_id 与起始 revision，事件流为空数组故如实显示空态）；口径 tooltip 与 AWR accounting 反伪完成率声明原样呈现"
@@ -643,3 +644,7 @@ work_items:
   - "commit bbea0e5 feat(page): 图例与主线互为筛选器（P0-B 第二批）— 主线标题与状态图例同为筛选按钮（aria-pressed/data-off 标记未选项），条件相乘生效；页面顶部新增具名筛选条 awr-filters：显示『现在显示 2 / 7』与每条可单独摘掉的条件＋全部清空；中英文案各 20 余条同步（parity 用例约束）"
   - "真实快照 rev 122 实测（awr overview snapshot --refresh > /tmp/snap122.json，双语渲染走 harness）：状态条文案『42/ 46 已完成 / 这里只数条数，不给完成率：AWR 拒绝混合完成率。』、条段 done 91% + active 7% + ready 2%（斜纹，基线 46）、全页 0 处 \\d+%；需要你处理=0 显示『没有卡住的，没有等待的，也没有等着确认的目标。』；点主线 DSH →『现在显示 4 / 46』，再叠加进行中 → 3 张卡片，全部清空后恢复 4 张"
   - "测试：node --test test/*.test.js → 414 项 385 通过 / 29 跳过 / 0 失败（P0-B 新增 3 例：口径全覆盖、空态三分类＋区块不消失、图例×主线交叉筛选；旧 29% 断言按新口径重写为条数+口径+无百分比）；docs/progress-page.md 补『每个数字说清怎么数出来的』三规则"
+  - "commit 9413a79 feat(view): 台账多读两件事 — lib/progress-view.js 新增 nowView（活跃会话→按 work_item_id 反查页面已有的工作项，给出标题/主线/模型/起始 revision/是否有检查点，未认领的会话保留并标注）与 activityView（事件按时间倒序、带 work_item 反查、next_cursor 存在即标 truncated）；lib/progress.js 增设第四路 best-effort 读取 `awr event history`（能力门 awrHasCommand('event history')，读不到就不显示，绝不猜）——因为 `awr overview snapshot` 的 events 窗口在真实工程里是空的"
+  - "commit ea9b137 feat(page): 「此刻在做」＋「台账事件」两块上线 — 会话行只说工作项标题/模型/开了多久，起始 revision 进 tooltip，全页零 ULID；事件用 AWR 原文不翻译（是记录不是文案），行尾指向相关工作项的标题；有界读取与空读取各自说清（『页面只带一次有界的读取』/『这次读到的台账里没有事件…但这不代表什么都没发生』/『这台机器的 awr 没有把事件历史交给页面』）；中英各 17 条新文案，parity 用例约束"
+  - "真实 rev 124 实测（awr overview snapshot + awr event history 各一份，双语各渲染一遍）：此刻在做 6 个会话（含 1 个未认领的，明写『一个没有认领工作的会话』），行尾相对时间；台账事件 20 条最新在上（『Started checkpoint save; completion receipt required』→ 指向 DSH-065 的标题）；会话 tooltip 含『从台账 revision 113 起』；点会话行打开对应工作项抽屉、事件行尾按钮同样可跳转；全页 0 处百分比、0 处 ULID"
+  - "测试：node --test test/*.test.js → 419 项 390 通过 / 29 跳过 / 0 失败（P1 新增 5 例：会话映射与未认领保留、事件倒序与有界、空读取与没读到分开、页面两块渲染、事件不给内部 id）；docs/progress-page.md 补『谁的手在上面、台账记了什么』一节"
