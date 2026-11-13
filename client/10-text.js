@@ -53,6 +53,10 @@ const en = {
   'reason.too_broad': 'This folder is too broad to be one project',
   'reason.default': 'Something unexpected happened',
 
+  'digest.goal': 'Goal',
+  'digest.progress': 'Done',
+  'digest.next': 'Next',
+
   'managed.caption': 'Managed by AWR',
   'managed.idle': 'Nothing is in progress right now',
   'managed.here': 'This conversation is on',
@@ -243,6 +247,10 @@ const zh = {
   'reason.locked': '另一个进程正在接管这个项目',
   'reason.too_broad': '这个文件夹范围太大，不适合当作一个项目',
   'reason.default': '遇到了意料之外的问题',
+
+  'digest.goal': '终极目标',
+  'digest.progress': '完成',
+  'digest.next': '下一步',
 
   'managed.caption': '由 AWR 管理',
   'managed.idle': '目前没有进行中的工作',

@@ -197,3 +197,20 @@ function useProgress(ctx, sessionId, language, enabled) {
 
   return { progress, error, working, ask }
 }
+
+/**
+ * The progress digest for the card: one silent read when the card opens, no command, no poll.
+ * Nothing shows until the host has written a view this version reads — the Progress tab is what asks for one.
+ */
+function useProgressDigest(ctx, sessionId, enabled) {
+  const [digest, setDigest] = React.useState(undefined)
+  React.useEffect(() => {
+    if (!enabled) { setDigest(undefined); return undefined }
+    let live = true
+    readData(ctx, sessionId, '.progress').then((payload) => {
+      if (live && payload?.ok && payload.schema === 2 && Array.isArray(payload.nodes)) setDigest(payload)
+    }, () => {})
+    return () => { live = false }
+  }, [ctx, sessionId, enabled])
+  return digest
+}

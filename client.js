@@ -66,6 +66,10 @@ window.__ModuleLoader__.load({
       'reason.too_broad': 'This folder is too broad to be one project',
       'reason.default': 'Something unexpected happened',
 
+      'digest.goal': 'Goal',
+      'digest.progress': 'Done',
+      'digest.next': 'Next',
+
       'managed.caption': 'Managed by AWR',
       'managed.idle': 'Nothing is in progress right now',
       'managed.here': 'This conversation is on',
@@ -256,6 +260,10 @@ window.__ModuleLoader__.load({
       'reason.locked': '另一个进程正在接管这个项目',
       'reason.too_broad': '这个文件夹范围太大，不适合当作一个项目',
       'reason.default': '遇到了意料之外的问题',
+
+      'digest.goal': '终极目标',
+      'digest.progress': '完成',
+      'digest.next': '下一步',
 
       'managed.caption': '由 AWR 管理',
       'managed.idle': '目前没有进行中的工作',
@@ -836,6 +844,23 @@ window.__ModuleLoader__.load({
       return { progress, error, working, ask }
     }
 
+    /**
+     * The progress digest for the card: one silent read when the card opens, no command, no poll.
+     * Nothing shows until the host has written a view this version reads — the Progress tab is what asks for one.
+     */
+    function useProgressDigest(ctx, sessionId, enabled) {
+      const [digest, setDigest] = React.useState(undefined)
+      React.useEffect(() => {
+        if (!enabled) { setDigest(undefined); return undefined }
+        let live = true
+        readData(ctx, sessionId, '.progress').then((payload) => {
+          if (live && payload?.ok && payload.schema === 2 && Array.isArray(payload.nodes)) setDigest(payload)
+        }, () => {})
+        return () => { live = false }
+      }, [ctx, sessionId, enabled])
+      return digest
+    }
+
     // ---- client/40-popover.js ----
     // The AWR light in the conversation header and the card it opens.
     //
@@ -923,8 +948,22 @@ window.__ModuleLoader__.load({
         failure ? h('p', { style: { ...P.note, color: C.bad }, 'data-testid': 'awr-failure' }, failure) : null)
     }
 
+    /** What the person asked of the project: the goal, how far it has come, and the next move — from the same view the Progress tab draws. */
+    function DigestBlock({ digest, t }) {
+      if (!digest || (!digest.goal && !digest.next)) return null
+      const row = (label, value, testId) => h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8 } },
+        h('span', { style: { ...P.label, flex: '0 0 auto' } }, label),
+        h('span', { 'data-testid': testId, className: 'awr-clamp1', style: { minWidth: 0, color: C.text } }, value))
+      return h('div', { 'data-testid': 'awr-digest', style: { display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 12, marginBottom: 12, borderBottom: `.5px solid ${C.line2}` } },
+        digest.goal?.title ? row(t('digest.goal'), digest.goal.title, 'awr-digest-goal') : null,
+        digest.counts ? h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8 } },
+          h('span', { style: { ...P.label, flex: '0 0 auto' } }, t('digest.progress')),
+          h('span', { 'data-testid': 'awr-digest-count', style: { fontVariantNumeric: 'tabular-nums', color: C.text } }, `${digest.counts.done} / ${digest.counts.total}`)) : null,
+        digest.next?.text ? row(t('digest.next'), digest.next.text, 'awr-digest-next') : null)
+    }
+
     /** A project AWR manages: how it stands, what this conversation is on, and what needs the person. */
-    function ManagedBlock({ view, work, t }) {
+    function ManagedBlock({ view, work, t, digest }) {
       // AWR lists a few of the work in each queue and counts all of it: the counts are shown, the lists say which.
       const totals = work?.totals ?? {}
       const counts = [['active', totals.active ?? work?.in_progress?.length ?? 0], ['ready', totals.ready ?? work?.ready?.length ?? 0], ['held', totals.blocked ?? work?.blocked?.length ?? 0]]
@@ -945,6 +984,7 @@ window.__ModuleLoader__.load({
       const more = setup ? Math.max(0, stuck.length - 2) : Math.max(0, (totals.blocked ?? blocked.length) - listed.length)
       const receipt = view.state === 'completed' ? view.receipt : undefined
       return h('div', { 'data-testid': 'awr-managed' },
+        h(DigestBlock, { digest, t }),
         receipt ? h('p', { style: { ...P.body, margin: '0 0 12px' }, 'data-testid': 'awr-done' }, h('span', { style: { color: C.text, fontWeight: 500 } }, t('done.title')), ' · ', t('done.body', { goals: receipt.organization?.goalTotal ?? 0, gaps: receipt.organization?.gapTotal ?? 0 })) : null,
         work
           ? h('div', { 'data-testid': 'awr-counts', style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' } },
@@ -1118,6 +1158,8 @@ window.__ModuleLoader__.load({
       }
 
       const light = lightOf(data)
+      // The digest is read once when the card opens on a managed project: it costs the conversation nothing.
+      const digest = useProgressDigest(ctx, sessionId, open && Boolean(view) && (view.state === 'initialized' || view.state === 'completed'))
       const button = h('button', { ref: trigger, id: 'awr-header-action', type: 'button', className: 'awr-chip', title: t('chip.title'), 'aria-label': t('chip.title'), 'aria-haspopup': 'dialog', 'aria-expanded': open, onClick: toggle },
         h('span', { 'data-testid': 'awr-dot', 'data-state': view?.state ?? (error ? 'unavailable' : 'loading'), style: { display: 'inline-flex' } }, h(Light, { state: light.state, size: 7, pulse: light.pulse })),
         t('chip.label'))
@@ -1135,7 +1177,7 @@ window.__ModuleLoader__.load({
       }
       if (view) {
         body.push(managed
-          ? h(ManagedBlock, { key: 'managed', view, work: data.work ?? undefined, t })
+          ? h(ManagedBlock, { key: 'managed', view, work: data.work ?? undefined, t, digest })
           : h(TakeoverBlock, { key: 'takeover', view, t, busy, onStart: start, failure }))
         body.push(h('hr', { key: 'rule', style: P.rule }))
         body.push(h(UpdateLine, { key: 'update', plugin: data.plugin ?? undefined, t, busy: busy || update?.phase === 'applying', onCheck: checkUpdate, onApply: applyUpdate, canApply: Boolean(host?.manager), status: update }))
