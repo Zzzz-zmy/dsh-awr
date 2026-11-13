@@ -81,15 +81,20 @@ test('a page opened on data written a moment ago asks the host nothing and shows
   const text = ui.text()
   assert.match(text, /Project progress/)
   assert.match(text, /Portal · Goal: Everyone can find a document and 1 more/)
-  assert.match(textOf(ui.byTestId('awr-gauge')), /2\/ 7 done.*29%/)
+  assert.match(textOf(ui.byTestId('awr-gauge')), /2\/ 7 done/, 'the counts are the fact')
+  assert.ok(!textOf(ui.byTestId('awr-gauge')).includes('%'), 'no blended completion percent anywhere on the bar, which is what AWR refuses to give')
+  assert.match(textOf(ui.byTestId('awr-gauge-caliber')), /AWR refuses a blended percent/, 'and the bar says so in words instead')
   assert.match(textOf(ui.byTestId('awr-updated')), /^Updated \d\d:\d\d$/)
   assert.ok(client.reads.some((read) => read.path === progressPath('conv-1', '/Users/test')), 'the file the host writes is the one that is read')
 })
 
 test('the gauge has one part for each state that occurs, and the legend counts them', async () => {
   const { ui } = await page()
-  const parts = ui.all((node) => node.props['data-part']).map((node) => [node.props['data-part'], node.props.style.flex])
-  assert.deepEqual(parts, [['done', '2 0 0'], ['active', '1 0 0'], ['blocked', '1 0 0'], ['waiting', '1 0 0'], ['ready', '1 0 0'], ['planned', '1 0 0']])
+  // The bar is measured against the whole ledger, so a segment is as wide as the work it stands for.
+  const parts = ui.all((node) => node.props['data-part']).map((node) => [node.props['data-part'], Math.round(parseFloat(node.props.style.width))])
+  assert.deepEqual(parts, [['done', 29], ['active', 14], ['blocked', 14], ['waiting', 14], ['ready', 14], ['planned', 14]])
+  const inked = Object.fromEntries(ui.all((node) => node.props['data-part']).map((node) => [node.props['data-part'], node.props.style.background.includes('repeating') ? 'hatch' : 'ink']))
+  assert.deepEqual(inked, { done: 'ink', active: 'ink', blocked: 'ink', waiting: 'ink', ready: 'hatch', planned: 'hatch' }, 'work that has not started is hatched, not inked')
   const legend = Object.fromEntries(ui.all((node) => node.props['data-legend']).map((node) => [node.props['data-legend'], textOf(node)]))
   assert.deepEqual(legend, { active: 'In progress1', blocked: 'Blocked1', waiting: 'Waiting1', ready: 'Ready1', planned: 'Not started1', done: 'Done2' })
 })
@@ -483,4 +488,51 @@ test('a next step written by an older host still reads, and shows no empty rows'
   assert.equal(ui.all((node) => node.type === 'a').length, 0, 'no links, no link row')
   assert.equal(ui.byTestId('awr-nextstep-when'), undefined, 'no timestamp, no timestamp row')
   assert.equal(ui.byTestId('awr-nextstep-basis'), undefined, 'AWR said nothing about why, so the page says nothing either')
+})
+
+test('every number on the page says how it was counted, in the words the number means (DSH-079)', async () => {
+  const { ui } = await page()
+  const told = ui.all((node) => typeof node.props.title === 'string').map((node) => node.props.title)
+  const howfar = ui.find((node) => node.props['data-cell'] === 'howfar').children[0].props.title
+  assert.match(howfar, /done over all, unweighted/, 'the band admits what its 2 / 7 is a count of')
+  assert.match(howfar, /AWR refuses to give/, 'and that the rate AWR refuses is not this')
+  assert.ok(told.some((line) => /The whole bar is every piece of work in the ledger/.test(line)), 'the bar carries its own 口径')
+  const chips = ui.all((node) => node.props['data-legend'])
+  assert.ok(chips.length >= 2 && chips.every((chip) => / · /.test(chip.props.title ?? '')), 'each legend chip explains its state, not just its name')
+  assert.ok(told.some((line) => /how many of its own pieces are done/.test(line)), 'the lane counts say what they divide')
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'A-2'))
+  await settle()
+  const opened = ui.all((node) => typeof node.props.title === 'string').map((node) => node.props.title)
+  assert.ok(opened.some((line) => /AWR records no check mark against them/.test(line)), 'the done-when list says up front that nothing is ticked')
+})
+
+test('an empty place says which of the three kinds of empty it is (DSH-079)', async () => {
+  const none = await page({ progress: () => buildProgress({ ...snapshot(), work_graph: { nodes: [], edges: [], cycle: [], graph_valid: true } }) })
+  assert.equal(none.ui.byTestId('awr-page-empty').props['data-empty'], 'none', 'nothing has been written yet')
+  assert.match(none.ui.text(), /No work is recorded yet.*Once the agent records work/, 'which is said, with when it fills')
+
+  const broken = await page({
+    progress: () => ({
+      ...buildProgress({ ...snapshot(), work_graph: { nodes: [], edges: [], cycle: [], graph_valid: true } }),
+      sourceIssues: [{ code: 'SourceConflict', message: 'source fingerprint conflict: work_items "INTAKE-001" already has a different source or identity' }],
+    }),
+  })
+  assert.equal(broken.ui.byTestId('awr-page-empty').props['data-empty'], 'broken', 'a ledger that cannot be read is never the same page as an empty one')
+  assert.match(broken.ui.text(), /not because the project has no work/)
+
+  const { ui } = await page()
+  ui.byId('awr-search').props.onChange({ target: { value: 'nothing like this' } })
+  await settle()
+  assert.ok(ui.find((node) => node.props['data-empty'] === 'filtered'), 'the third kind: work exists and this cut of it is empty')
+  assert.match(ui.text(), /The work is still there/, 'which says the work is not gone')
+  await ui.click(ui.byTestId('awr-empty-clear'))
+  await settle()
+  assert.ok(keys(ui).includes('A-2'), 'and the way out of it is on the page')
+})
+
+test('a section with nothing in it stays on the page and says so, instead of vanishing', async () => {
+  const { ui } = await page({ progress: () => ({ ...buildProgress(snapshot()), attention: [] }) })
+  const needs = textOf(ui.byTestId('awr-page-needs'))
+  assert.match(needs, /Needs you0/, 'the count is shown as zero, not hidden')
+  assert.match(needs, /Nothing is stuck, nothing is waiting/)
 })

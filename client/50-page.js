@@ -180,28 +180,47 @@ function WorkCard({ node, t, selected, dim, fixed, onPick, onHover }) {
 }
 
 /**
+ * An empty place, named as one of the three kinds of empty there are (DSH-079): nothing has been written yet,
+ * something is broken so nothing can be read, or this cut of the work happens to be empty. Each says why it is empty
+ * and what would fill it, so an empty page is never read as a finished project — or as a working one.
+ */
+function EmptyState({ kind = 'none', testid, reason, action, dense, t }) {
+  const copy = { none: ['empty.nowork.title', 'empty.nowork.body'], broken: ['empty.source.title', 'empty.source.body'], filtered: ['empty.nomatch', 'empty.filter.body'] }[kind]
+  return h('div', {
+    ...(testid ? { 'data-testid': testid } : {}),
+    ...(reason ? { 'data-reason': reason } : {}),
+    'data-empty': kind,
+    style: dense ? { padding: '28px 0 4px' } : { maxWidth: 420, margin: '72px auto 0' },
+  },
+  h('p', { style: P.title }, t(copy[0])),
+  h('p', { style: P.body }, t(copy[1])),
+  action ? h('div', { style: { marginTop: 12 } }, h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', 'data-testid': 'awr-empty-clear', onClick: action }, t('empty.filter.clear'))) : null)
+}
+
+/**
  * The four questions asked when someone opens the page, answered before anything else: what is the goal, how far it
  * is, whose turn it is, what happens next. The distance is told one cell per piece of work, never an invented rate.
+ * Every number carries how it is counted, because a number without its 口径 is a guess with better typography.
  */
 function GoalBand({ progress, nodes, t, onPick }) {
   const counts = progress.counts ?? {}
   const total = counts.total || 0
   const who = [...new Set(nodes.filter((node) => node.claimedBy).map((node) => node.claimedBy))]
-  const label = (title) => h('div', { style: { fontSize: 12, lineHeight: '16px', color: C.text3, marginBottom: 6 } }, title)
+  const label = (title, tip) => h('div', { title: tip, style: { fontSize: 12, lineHeight: '16px', color: C.text3, marginBottom: 6 } }, title)
   const none = h('span', { style: { color: C.text3 } }, t('band.goal.none'))
   return h('div', { 'data-testid': 'awr-goalband', style: { marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px 28px', padding: '18px 0 20px', borderTop: `.5px solid ${C.line2}`, borderBottom: `.5px solid ${C.line2}` } },
-    h('div', { 'data-cell': 'goal', style: { minWidth: 0 } }, label(t('band.goal')),
+    h('div', { 'data-cell': 'goal', style: { minWidth: 0 } }, label(t('band.goal'), t('tip.goal')),
       h('div', { style: { fontSize: 14, lineHeight: '20px', color: progress.goal ? C.text : C.text3 } }, progress.goal?.title || none)),
-    h('div', { 'data-cell': 'howfar', style: { minWidth: 0 } }, label(t('band.howfar')),
+    h('div', { 'data-cell': 'howfar', style: { minWidth: 0 } }, label(t('band.howfar'), t('tip.howfar')),
       h('span', { style: { fontSize: 22, lineHeight: '28px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done ?? 0),
       h('span', { style: { fontSize: 12, lineHeight: '28px', color: C.text3, fontVariantNumeric: 'tabular-nums', marginLeft: 6 } }, `/ ${total} ${t('gauge.done')}`),
       h('div', { role: 'img', 'aria-label': t('band.cells', { done: counts.done ?? 0, total }), style: { display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 6 } },
         ...nodes.map((node) => h('span', { key: node.key, title: `${node.key} · ${node.title}`, style: { width: 6, height: 12, borderRadius: 2, background: STATE_COLOR[node.state] ?? C.idle, opacity: node.state === 'planned' || node.state === 'cancelled' ? 0.3 : 0.9 } })))),
-    h('div', { 'data-cell': 'who', style: { minWidth: 0 } }, label(t('band.who')),
+    h('div', { 'data-cell': 'who', style: { minWidth: 0 } }, label(t('band.who'), t('tip.who')),
       who.length
         ? h('div', { style: { fontSize: 14, lineHeight: '20px', color: C.text, wordBreak: 'break-word' } }, who.join(' · '))
         : h('div', { style: { fontSize: 14, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.who.none')))),
-    h('div', { 'data-cell': 'next', style: { minWidth: 0 } }, label(t('band.next')),
+    h('div', { 'data-cell': 'next', style: { minWidth: 0 } }, label(t('band.next'), t('tip.next')),
       progress.next?.text
         ? h('button', { type: 'button', className: 'awr-link', 'id': 'awr-band-next', title: progress.next.text, style: { textAlign: 'left', fontSize: 13, lineHeight: '20px', color: C.text }, onClick: () => onPick(progress.next.key) },
           h('span', { className: 'awr-clamp2' }, progress.next.headline ?? progress.next.text))
@@ -209,23 +228,36 @@ function GoalBand({ progress, nodes, t, onPick }) {
 }
 
 /**
- * The gauge: one bar for the whole project. The inked part is done; what is being worked on is lit; the rest is in the
- * order a person would ask about it. The legend counts each state and filters the work when pressed.
+ * The gauge: one bar for the whole project, measured against the whole ledger so the eye cannot be fooled by a bar
+ * that only draws what has happened. Work that has not started is hatched, not inked, and work AWR counted but this
+ * page has no colour for is hatched too rather than dropped. The counts are the fact; the bar is the shape of it.
+ * No percentage is printed here, because AWR refuses a blended completion rate — see `accounting` in the footer.
  */
 function Gauge({ counts, t, only, onOnly }) {
   const total = counts.total || 0
-  const parts = ['done', 'active', 'blocked', 'waiting', 'ready', 'planned'].map((state) => ({ state, value: counts[state] ?? 0 })).filter((part) => part.value > 0)
-  const percent = total ? Math.round((counts.done / total) * 100) : 0
+  const known = ['done', 'active', 'blocked', 'waiting', 'ready', 'planned']
+  const parts = known.map((state) => ({ state, value: counts[state] ?? 0 })).filter((part) => part.value > 0)
+  const drawn = parts.reduce((sum, part) => sum + part.value, 0)
+  const baseline = Math.max(total, drawn)
+  // Anything AWR counted that this page does not draw (cancelled, or a state newer than this plugin) keeps its width.
+  const rest = Math.max(0, baseline - drawn)
+  // Work that has not started is drawn as a hatch, not as ink, so an untouched reserve never reads as progress.
+  const hatch = `repeating-linear-gradient(45deg, ${C.faint} 0 2px, transparent 2px 5px)`
+  const segment = (state, value) => h('span', {
+    key: state, 'data-part': state, title: `${t(`state.${state}`)} ${value} · ${t(`tip.${state}`)}`,
+    style: { width: `${baseline ? (value / baseline) * 100 : 0}%`, minWidth: value ? 3 : 0, background: state === 'planned' || state === 'ready' ? hatch : STATE_COLOR[state], opacity: only && only !== state ? 0.25 : 1, transition: `opacity .16s ${C.ease}` },
+  })
   return h('div', { 'data-testid': 'awr-gauge' },
     h('div', { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 } },
       h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 8 } },
-        h('span', { style: { fontSize: 28, lineHeight: '32px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done),
-        h('span', { style: { fontSize: 13, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `/ ${total} ${t('gauge.done')}`)),
-      h('span', { style: { fontSize: 13, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${percent}%`)),
-    h('div', { role: 'img', 'aria-label': `${counts.done} / ${total} ${t('gauge.done')}`, style: { display: 'flex', gap: 2, height: 8, margin: '12px 0', borderRadius: 4, overflow: 'hidden', background: total ? 'transparent' : C.active } },
-      ...parts.map((part) => h('span', { key: part.state, 'data-part': part.state, title: `${t(`state.${part.state}`)} ${part.value}`, style: { flex: `${part.value} 0 0`, minWidth: 3, background: part.state === 'planned' ? C.active : part.state === 'ready' ? C.faint : STATE_COLOR[part.state], opacity: only && only !== part.state ? 0.25 : 1, transition: `opacity .16s ${C.ease}` } }))),
+        h('span', { title: t('tip.done'), style: { fontSize: 28, lineHeight: '32px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done),
+        h('span', { title: t('tip.howfar'), style: { fontSize: 13, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `/ ${total} ${t('gauge.done')}`)),
+      h('span', { 'data-testid': 'awr-gauge-caliber', title: t('tip.gauge'), style: { fontSize: 12, lineHeight: '18px', color: C.text3, textAlign: 'right' } }, t('gauge.caliber'))),
+    h('div', { role: 'img', 'aria-label': `${counts.done} / ${total} ${t('gauge.done')}`, title: t('tip.gauge'), style: { display: 'flex', gap: 2, height: 8, margin: '12px 0', borderRadius: 4, overflow: 'hidden', background: total ? 'transparent' : C.active } },
+      ...parts.map((part) => segment(part.state, part.value)),
+      rest ? h('span', { key: '~rest', 'data-part': 'rest', title: `${t('gauge.rest', { n: rest })} · ${t('tip.cancelled')}`, style: { width: `${(rest / baseline) * 100}%`, minWidth: 3, background: hatch, opacity: only ? 0.25 : 1 } }) : null),
     h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4, margin: '0 -8px' } },
-      ...['active', 'blocked', 'waiting', 'ready', 'planned', 'done'].filter((state) => (counts[state] ?? 0) > 0).map((state) => h('button', { key: state, type: 'button', className: 'awr-legend', 'data-legend': state, 'aria-pressed': only === state, 'data-off': only && only !== state ? 'true' : undefined, onClick: () => onOnly(only === state ? undefined : state) },
+      ...['active', 'blocked', 'waiting', 'ready', 'planned', 'done'].filter((state) => (counts[state] ?? 0) > 0).map((state) => h('button', { key: state, type: 'button', className: 'awr-legend', 'data-legend': state, 'aria-pressed': only === state, 'data-off': only && only !== state ? 'true' : undefined, title: `${t(`state.${state}`)} · ${t(`tip.${state}`)}`, onClick: () => onOnly(only === state ? undefined : state) },
         h(Light, { state }), t(`state.${state}`), h('span', { style: { color: C.text3, fontVariantNumeric: 'tabular-nums' } }, counts[state])))))
 }
 
@@ -337,7 +369,7 @@ function NextStep({ next, guidance, accounting, counts, t, onPick }) {
     h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 } }, ...chips.map((chip) => h('span', { key: chip.key, title: chip.tip, style: box }, chip.text))),
     checklist.length
       ? h('div', { style: { marginTop: 10 } },
-        h('div', { style: { ...P.label, marginBottom: 4 } }, t('step.checklist')),
+        h('div', { style: { ...P.label, marginBottom: 4 }, title: t('tip.acceptance') }, t('step.checklist')),
         h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 4 } },
           ...checklist.map((item) => h('li', { key: item, style: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, lineHeight: '20px', color: C.text2 } },
             h('span', { 'data-check': 'unmarked', style: { width: 10, height: 10, flex: 'none', marginTop: 5, borderRadius: 2, border: `.5px solid ${C.faint}` } }),
@@ -356,15 +388,17 @@ function NextStep({ next, guidance, accounting, counts, t, onPick }) {
       : null)
 }
 
-/** What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request. */
+/**
+ * What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request.
+ * A section that is empty says so out loud — a vanished section is read as good news, an honest line is read as fact.
+ */
 function Needs({ items, t, onPick }) {
   const [all, setAll] = React.useState(false)
-  if (!items.length) return null
   const shown = all ? items : items.slice(0, 3)
   return h('div', { 'data-testid': 'awr-page-needs', style: { marginTop: 24 } },
     h('div', { style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } }, t('needs.title'), h('span', { style: { marginLeft: 6, color: C.text3, fontWeight: 400, fontVariantNumeric: 'tabular-nums' } }, items.length)),
     h('div', { style: { marginTop: 4, borderTop: `.5px solid ${C.line2}` } },
-      ...shown.map((item, index) => h(item.key ? 'button' : 'div', {
+      ...(items.length ? shown.map((item, index) => h(item.key ? 'button' : 'div', {
         key: `${item.kind}:${item.key ?? index}`,
         ...(item.key ? { type: 'button', className: 'awr-link', onClick: () => onPick(item.key) } : {}),
         style: { display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', padding: '8px 0', borderBottom: `.5px solid ${C.line2}`, borderRadius: 0, fontSize: 13, lineHeight: '20px', color: C.text },
@@ -372,7 +406,8 @@ function Needs({ items, t, onPick }) {
       h('span', { style: { transform: 'translateY(-1px)' } }, h(Light, { state: item.kind === 'blocked' ? 'blocked' : 'waiting' })),
       h('span', { style: { minWidth: 0, flex: 1 } },
         h('span', { className: 'awr-clamp1', style: { display: 'block' } }, item.title),
-        h('span', { className: 'awr-clamp2', style: { fontSize: 12, lineHeight: '18px', color: C.text3 } }, item.kind === 'blocked' ? (item.detail || t('needs.blocked')) : item.kind === 'setup' ? item.detail : t('needs.goal')))))),
+        h('span', { className: 'awr-clamp2', style: { fontSize: 12, lineHeight: '18px', color: C.text3 } }, item.kind === 'blocked' ? (item.detail || t('needs.blocked')) : item.kind === 'setup' ? item.detail : t('needs.goal')))))
+        : [h('div', { key: 'none', 'data-testid': 'awr-needs-none', style: { padding: '8px 0', ...P.note } }, t('needs.none'))])),
     items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('needs.less') : t('needs.more', { n: items.length - 3 })) : null)
 }
 
@@ -397,7 +432,7 @@ function Detail({ node, byKey, t, onPick, onClaim, onClose }) {
     node.wait ? section(t('detail.wait'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text2, wordBreak: 'break-word' } }, node.wait.summary,
       node.wait.release ? h('div', { style: { marginTop: 4, fontSize: 12, lineHeight: '18px', color: C.text3 } }, `${t('detail.wait.release')}：${node.wait.release}`) : null)) : null,
     node.next ? section(t('detail.next'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text, wordBreak: 'break-word' } }, node.next)) : null,
-    node.outcomes?.length ? section(t('detail.outcomes'), h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 } },
+    node.outcomes?.length ? section(h('span', { title: t('tip.acceptance') }, t('detail.outcomes')), h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 } },
       ...node.outcomes.map((outcome, index) => h('li', { key: index, style: { display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, lineHeight: '20px', color: C.text2 } },
         h('span', { style: { flex: 'none', width: 8, height: 8, boxSizing: 'border-box', borderRadius: 2, border: `1.5px solid ${node.state === 'done' ? C.text3 : C.faint}`, background: node.state === 'done' ? C.text3 : 'transparent', transform: 'translateY(-1px)' } }),
         h('span', { style: { minWidth: 0, wordBreak: 'break-word' } }, outcome))))) : null,
@@ -416,7 +451,7 @@ function Detail({ node, byKey, t, onPick, onClaim, onClose }) {
 }
 
 /** By mainline: each with how far it is, the work that is left as cards, and the finished work folded. */
-function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, onPick }) {
+function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, onClear, onPick }) {
   const [open, setOpen] = React.useState({})
   const groups = lanes.map((lane) => {
     const own = nodes.filter((node) => node.lane === lane.id && matches(node)).sort(byState)
@@ -433,14 +468,14 @@ function LinesView({ lanes, nodes, t, strip, selected, matches, showDone, onPick
       h('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 } },
         h('span', { style: { fontSize: 14, lineHeight: '20px', fontWeight: 500, color: C.text } }, laneTitle(lane.id, t, strip)),
         h('span', { style: { flex: 'none', width: 72, height: 4, borderRadius: 2, background: C.active, overflow: 'hidden' } }, h('span', { style: { display: 'block', width: `${lane.total ? (lane.done / lane.total) * 100 : 0}%`, height: '100%', background: C.text } })),
-        h('span', { style: { fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, lane.done === lane.total ? t('lane.alldone') : `${lane.done} / ${lane.total}`)),
+        h('span', { title: t('tip.lane'), style: { fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, lane.done === lane.total ? t('lane.alldone') : `${lane.done} / ${lane.total}`)),
       cards.length ? h('div', { style: grid }, ...cards.map((node) => h(WorkCard, { key: node.key, node, t, selected: selected === node.key, onPick }))) : null,
       h('div', { style: { display: 'flex', gap: 4, margin: '4px 0 0 -8px' } },
         left.length > 8 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { fontSize: 12 }, onClick: () => setOpen({ ...open, [lane.id]: !all }) }, all ? t('needs.less') : t('lane.more', { n: left.length - 8 })) : null,
         done.length && !showDone ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', 'data-done-toggle': lane.id, style: { fontSize: 12 }, 'aria-expanded': doneOpen, onClick: () => setOpen({ ...open, [`${lane.id}:done`]: !doneOpen }) }, h(Icon, { name: 'check', size: 12 }), t('lane.done', { n: done.length })) : null),
       doneOpen && done.length ? h('div', { style: { ...grid, marginTop: 8 } }, ...done.map((node) => h(WorkCard, { key: node.key, node, t, selected: selected === node.key, onPick }))) : null)
   }
-  if (!groups.length) return h('p', { style: { margin: '32px 0', fontSize: 13, color: C.text3 } }, t('empty.nomatch'))
+  if (!groups.length) return h(EmptyState, { kind: 'filtered', dense: true, action: onClear, t })
   const finishedOpen = showDone || open['~finished'] === true || !active.length
   return h('div', { 'data-testid': 'awr-view-lines' },
     ...active.map(renderGroup),
@@ -485,7 +520,7 @@ function LanesView({ nodes, lanes, t, strip, selected, matches, zoom, onPick }) 
   if (!nodes.length) return h('p', { style: { margin: '32px 0', fontSize: 13, color: C.text3 } }, t('empty.alldone'))
   const header = layout.columns.map((column, index) => h('div', { key: column.lane.id, 'data-lane-head': column.lane.id, style: { position: 'absolute', left: index * (CARD_W + LANE_GAP), top: 0, width: CARD_W, height: LANE_HEAD - 12, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, borderBottom: `.5px solid ${C.line2}` } },
     h('span', { className: 'awr-clamp1', style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } }, laneTitle(column.lane.id, t, strip)),
-    h('span', { style: { flex: 'none', fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${column.lane.done} / ${column.lane.total}`)))
+    h('span', { title: t('tip.lane'), style: { flex: 'none', fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${column.lane.done} / ${column.lane.total}`)))
   return h('div', { 'data-testid': 'awr-view-lanes', style: { overflowX: 'auto', padding: '4px 0 16px 16px' } }, h(Canvas, { layout, nodes, t, selected, matches, zoom, onPick, header }))
 }
 
@@ -538,6 +573,12 @@ function ProgressPage(props) {
   const visible = React.useMemo(() => all.filter((node) => showDone || only === 'done' || node.state !== 'done'), [all, showDone, only])
   const needle = query.trim().toLowerCase()
   const matches = React.useCallback((node) => (!only || node.state === only) && (!needle || node.title.toLowerCase().includes(needle) || String(node.key).toLowerCase().includes(needle)), [only, needle])
+
+  // A filter that empties the page has to be escapable without hunting for the control that set it.
+  const clearFilters = () => {
+    setOnly(undefined)
+    setQuery('')
+  }
 
   const start = async () => {
     setFailure(undefined)
@@ -637,13 +678,13 @@ function ProgressPage(props) {
         h('div', { className: 'awr-clamp1', style: { marginTop: 2, fontSize: 13, lineHeight: '20px', color: C.text3 } },
           [progress.project || baseName(view.projectRoot), goal ? `${t('page.goal', { title: goal.title })}${goals.length > 1 ? t('page.goals.more', { n: goals.length - 1 }) : ''}` : undefined].filter(Boolean).join(' · '))),
       h('div', { style: { display: 'flex', alignItems: 'center', gap: 4, flex: 'none' } },
-        h('span', { 'data-testid': 'awr-updated', style: { marginRight: 4, fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, working === 'sync' ? t('page.syncing') : t('page.updated', { time: clock(progress.updatedAt) })),
+        h('span', { 'data-testid': 'awr-updated', title: t('tip.updated'), style: { marginRight: 4, fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, working === 'sync' ? t('page.syncing') : t('page.updated', { time: clock(progress.updatedAt) })),
         h('button', { id: 'awr-page-refresh', type: 'button', className: 'awr-btn awr-btn-icon', title: t('page.refresh'), 'aria-label': t('page.refresh'), disabled: Boolean(working), onClick: () => ask(false) }, h(Icon, { name: 'refresh', size: 14, className: working ? 'awr-spin' : undefined })),
         h('button', { id: 'awr-page-sync', type: 'button', className: 'awr-btn awr-btn-quiet', disabled: Boolean(working), onClick: () => ask(true) }, t('page.sync')))),
 
     h(SourceIssues, { issues: progress.sourceIssues, t }),
     all.length === 0
-      ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': progress.sourceIssues ? 'sourcebroken' : 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t(progress.sourceIssues ? 'empty.source.title' : 'empty.nowork.title')), h('p', { style: P.body }, t(progress.sourceIssues ? 'empty.source.body' : 'empty.nowork.body')))
+      ? h(EmptyState, { kind: progress.sourceIssues ? 'broken' : 'none', testid: 'awr-page-empty', reason: progress.sourceIssues ? 'sourcebroken' : 'nowork', t })
       : h(React.Fragment, null,
           h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
           h(NextStep, { next: progress.next, guidance: progress.guidance, accounting: progress.accounting, counts: progress.counts, t, onPick: (key) => setSelected(key) }),
@@ -666,7 +707,7 @@ function ProgressPage(props) {
 
           h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 24 } },
             h('div', { ref: area, style: { minWidth: 0, flex: 1 } },
-              mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', onPick: pick })
+              mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', onClear: clearFilters, onPick: pick })
                 : mode === 'graph' ? h(GraphView, { nodes: visible, t, selected, matches, zoom, onPick: pick })
                   : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, onPick: pick })),
             node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null),
