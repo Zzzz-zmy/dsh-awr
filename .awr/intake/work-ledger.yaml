@@ -576,8 +576,8 @@ work_items:
   acceptance:
   - "每个提交职责单一且附测试结果；npm run build 与 node --test 在最终提交上全绿。"
   - "实现与拍板方案一致，偏离处有业主补充拍板记录。"
-  next_action: "已交付五刀：①四问带+schema2（5f609ba）②GUI 发命令闭环实测（live-verify-5f609ba.md）③popover 四问摘要（7c3c942）④能力覆盖区+健康区（cd640d4，真实 CLI 冒烟 57/57 groups=22 health ok）⑤视觉 P0：11.5→12px、带格子 6×12（e6e5a19）。下一刀：chip 计数+next、台账格子条与四问带一致性；像素验收转 DSH-077 业主桌面"
-  "evidence": ["docs/verify-20261113/live-verify-5f609ba.md", "commit 7c3c942 feat(popover): 卡片顶部四问摘要", "commit cd640d4 feat(page): 能力覆盖区与项目健康区", "commit e6e5a19 fix(visual): 字号与格子收窄"]
+  next_action: "已交付七刀：①四问带+schema2（5f609ba）②GUI 发命令闭环实测（live-verify-5f609ba.md）③popover 四问摘要（7c3c942）④能力覆盖区+健康区（cd640d4，真实 CLI 冒烟 57/57 groups=22 health ok）⑤视觉 P0：11.5→12px、带格子 6×12（e6e5a19）⑥chip 计数+next 悬浮、只读面板文件不发命令（72407f7）⑦投入核算诚实空区：AWR 拒绝给数就展示留白不造假（eef9a46）。剩余刀口均转真机：像素验收、真实桌面 chip/Popover/页脚三区效果确认转 DSH-077 业主桌面"
+  "evidence": ["docs/verify-20261113/live-verify-5f609ba.md", "commit 7c3c942 feat(popover): 卡片顶部四问摘要", "commit cd640d4 feat(page): 能力覆盖区与项目健康区", "commit e6e5a19 fix(visual): 字号与格子收窄", "commit 72407f7 feat(chip): 徽章计数与下一步悬浮", "commit eef9a46 feat(page): 投入核算诚实空区"]
 - id: DSH-077
   title: "推倒重来·节点4: 真机验收与合并 (live verification and merge back to main)"
   kind: test
