@@ -4,7 +4,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) plug
 [AWR](https://github.com/originoneai/agent-work-runtime) manage work state
 for projects developed inside DSH.
 
-Status: **v0.2.0.** Checked in DeepSeek Harness `0.2.2-rc.2` (the signed-in desktop app on macOS arm64, with a real model)
+Status: **v0.2.1.** Checked in DeepSeek Harness `0.2.2-rc.2` (the signed-in desktop app on macOS arm64, with a real model)
 and, for what the app cannot show, in the web and headless profiles with a local stand-in model. It binds each
 conversation to an AWR session, puts the AWR work context in the prompt, gives the model the `awr` tools and a workflow
 skill, offers `/awr` commands, takes a project over in one click with a restricted reviewer subagent, asks for
@@ -22,7 +22,7 @@ In DeepSeek Harness open Plugins, choose Add plugin, and enter `https://github.c
 terminal:
 
 ```sh
-dsh plugin --profile <profile> add github:originoneai/dsh-awr#v0.2.0
+dsh plugin --profile <profile> add github:originoneai/dsh-awr#v0.2.1
 ```
 
 The plugin runs the `awr` CLI of the machine it is on (see [docs/awr-runtime.md](docs/awr-runtime.md)); install AWR
@@ -31,7 +31,7 @@ contains originoneai/awr#614 (docs/dsh-001-l0-check.md).
 
 **Updating.** DeepSeek Harness's plugin page updates registry packages only, so the plugin's own card does it: the AWR
 card in the conversation header has **Check for updates** and **Update**. A plugin installed at a release tag
-(`#v0.2.0`) follows newer release tags; one installed from a branch (`#main`, or no `#` at all for the default branch)
+(`#v0.2.1`) follows newer release tags; one installed from a branch (`#main`, or no `#` at all for the default branch)
 follows that branch. The update installs the newest commit pinned (`github:originoneai/dsh-awr#<commit>`) with the
 plugin manager, which puts the profile back if it fails ([docs/panel.md](docs/panel.md)).
 
