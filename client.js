@@ -244,6 +244,10 @@ window.__ModuleLoader__.load({
       'health.issue.schema': 'The database does not match the shape this awr expects',
       'health.issue.references': 'Some records point at things that are gone',
       'health.issue.integrity': 'The integrity checks did not all pass',
+      'health.findings.title': 'The doctor found problems — its own words, untouched:',
+      'health.notok': 'The doctor withholds its sign-off and gave nothing the page can show',
+      'health.repair': 'AWR suggests: {r}',
+      'health.repair.hint': 'This page only reads — it changed nothing. `awr doctor repair` lists the safe repairs; each one applies only the single repair you name, preserving sources and artifact files.',
       'accounting.title': 'Where the effort went',
       'accounting.notyet': 'No number yet: AWR withholds this until an approved contract and verified observations exist.',
 
@@ -534,6 +538,10 @@ window.__ModuleLoader__.load({
       'health.issue.schema': '数据库与本版本 awr 期望的结构不符',
       'health.issue.references': '存在指向已消失记录的引用',
       'health.issue.integrity': '完整性检查未全部通过',
+      'health.findings.title': '体检发现了问题 —— 以下是 AWR 原话，未做改写：',
+      'health.notok': '体检没有放行，且没有给出页面能展示的原因',
+      'health.repair': 'AWR 建议：{r}',
+      'health.repair.hint': '页面只做读取，什么都没改。`awr doctor repair` 列出安全的修复动作：只执行你点名的那一个，源文件与工件文件都会保留。',
       'accounting.title': '投入核算',
       'accounting.notyet': '暂时没有数字：合同批准、观测核实之前，AWR 拒绝给这个数——留白是真的。',
 
@@ -1750,17 +1758,32 @@ window.__ModuleLoader__.load({
     function Health({ health, t }) {
       if (!health) return null
       const ISSUE = { database: 'health.issue.database', schema: 'health.issue.schema', references: 'health.issue.references', integrity: 'health.issue.integrity' }
+      // A doctor finding is AWR's own diagnosis — the code and sentence stay exactly as the doctor wrote them.
+      const SEVERITY = { error: { light: 'blocked', color: C.bad }, warning: { light: 'ready', color: C.warn ?? C.bad }, info: { light: 'planned', color: C.text3 } }
+      const findings = health.findings ?? []
       return h('div', { 'data-testid': 'awr-health', style: { minWidth: 0 } },
         h('div', { style: P.label }, t('health.title')),
-        health.ok
-          ? h('div', { style: { display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 } },
+        h('div', { style: { marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 } },
+          health.ok ? h('div', { style: { display: 'flex', alignItems: 'center', gap: 6 } },
             h(Light, { state: 'done', size: 7 }),
             h('span', { style: { fontSize: 14, lineHeight: '20px', color: C.text } }, t('health.ok')),
             Number.isFinite(health.schemaVersion) ? h('span', { style: { fontSize: 12, lineHeight: '20px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null)
-          : h('div', { style: { marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 } },
-            ...health.issues.map((issue) => h('div', { key: issue, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '20px', color: C.bad } },
-              h(Light, { state: 'blocked', size: 7 }), t(ISSUE[issue] ?? 'health.issue.database'))),
-            Number.isFinite(health.schemaVersion) ? h('div', { style: { fontSize: 12, lineHeight: '18px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null))
+            : h('div', { style: { display: 'flex', flexDirection: 'column', gap: 4 } },
+              ...health.issues.map((issue) => h('div', { key: issue, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '20px', color: C.bad } },
+                h(Light, { state: 'blocked', size: 7 }), t(ISSUE[issue] ?? 'health.issue.database'))),
+              health.issues.length === 0 && findings.length ? h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.bad } }, t('health.findings.title')) : null,
+              health.issues.length === 0 && !findings.length ? h('div', { style: { display: 'flex', alignItems: 'center', gap: 6 }, key: 'notok' },
+                h(Light, { state: 'blocked', size: 7 }), h('span', { style: { fontSize: 13, lineHeight: '20px', color: C.bad } }, t('health.notok'))) : null,
+              Number.isFinite(health.schemaVersion) ? h('div', { style: { fontSize: 12, lineHeight: '18px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null),
+          ...findings.map((finding, index) => {
+            const look = SEVERITY[finding.severity] ?? SEVERITY.error
+            return h('div', { key: index, title: finding.message, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '20px', color: look.color, minWidth: 0 } },
+              h(Light, { state: look.light, size: 7 }),
+              h('code', { style: { fontSize: 12, wordBreak: 'break-word' } }, finding.code),
+              finding.count > 1 ? h('span', { style: { fontVariantNumeric: 'tabular-nums' } }, `× ${finding.count}`) : null,
+              finding.repair ? h('span', { style: { fontSize: 12, color: C.text3 } }, t('health.repair', { r: `awr doctor repair ${finding.repair.replaceAll('_', '-')}` })) : null)
+          }),
+          findings.some((finding) => finding.severity === 'error') ? h('div', { style: { fontSize: 12, lineHeight: '18px', color: C.text2 } }, t('health.repair.hint')) : null))
     }
 
     /** The honesty box: AWR withholds an effort number until it has an approved contract and verified observations. What it does say is passed through as said. */
@@ -1855,10 +1878,10 @@ window.__ModuleLoader__.load({
             ...(item.key ? { type: 'button', className: 'awr-link', onClick: () => onPick(item.key) } : {}),
             style: { display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', padding: '8px 0', borderBottom: `.5px solid ${C.line2}`, borderRadius: 0, fontSize: 13, lineHeight: '20px', color: C.text },
           },
-          h('span', { style: { transform: 'translateY(-1px)' } }, h(Light, { state: item.kind === 'blocked' ? 'blocked' : 'waiting' })),
+          h('span', { style: { transform: 'translateY(-1px)' } }, h(Light, { state: item.kind === 'blocked' || item.kind === 'finding' ? 'blocked' : 'waiting' })),
           h('span', { style: { minWidth: 0, flex: 1 } },
             h('span', { className: 'awr-clamp1', style: { display: 'block' } }, item.title),
-            h('span', { className: 'awr-clamp2', style: { fontSize: 12, lineHeight: '18px', color: C.text3 } }, item.kind === 'blocked' ? (item.detail || t('needs.blocked')) : item.kind === 'setup' ? item.detail : t('needs.goal')))))
+            h('span', { className: 'awr-clamp2', style: { fontSize: 12, lineHeight: '18px', color: C.text3 } }, item.kind === 'blocked' ? (item.detail || t('needs.blocked')) : item.kind === 'setup' || item.kind === 'finding' ? item.detail : t('needs.goal')))))
             : [h('div', { key: 'none', 'data-testid': 'awr-needs-none', style: { padding: '8px 0', ...P.note } }, t('needs.none'))])),
         items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('needs.less') : t('needs.more', { n: items.length - 3 })) : null)
     }

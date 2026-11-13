@@ -631,3 +631,29 @@ test('the ledger’s own events are shown in AWR’s words, and a read with none
   const none = await page({ progress: () => buildProgress(snapshot(), { events: { events: [] } }) })
   assert.match(textOf(none.ui.byTestId('awr-activity')), /This read of the ledger carries no events/, 'an empty ledger is not claimed to be an idle project')
 })
+
+// awr doctor findings are real problems (rev 130: five sessions still bound to finished work). The page used to
+// say "database is sound" while the doctor disagreed — now the findings are shown, in AWR own words.
+const doctorWithFindings = () => ({
+  ok: false, database_ok: true, schema_version: 14, integrity: ['ok'], foreign_key_violations: 0, schema_issues: [],
+  findings: [
+    { code: 'orphan_session', message: 'Active session has inconsistent bindings: bound work item is terminal or unusable (completed)', object_id: '01M79R9SQBX26RJTY25HZ2X9M8', object_kind: 'session', repair: { kind: 'interrupt_session', session_id: '01M79R9SQBX26RJTY25HZ2X9M8' }, severity: 'error' },
+    { code: 'orphan_session', message: 'Active session has inconsistent bindings: bound work item is terminal or unusable (completed)', object_id: '01M79R9SRVZ421DR39DVMWKR8B', object_kind: 'session', repair: { kind: 'interrupt_session', session_id: '01M79R9SRVZ421DR39DVMWKR8B' }, severity: 'error' },
+    { code: 'active_session', message: 'Session is active in the database; process liveness was not inspected, so death cannot be inferred', object_id: '01M7AH4A22QKK5GGJBCEXWYZZH', object_kind: 'session', repair: { kind: 'interrupt_session', session_id: '01M7AH4A22QKK5GGJBCEXWYZZH' }, severity: 'info' },
+  ],
+})
+test('what the doctor found is shown where it was found and where the person looks', async () => {
+  const { ui } = await page({ progress: () => buildProgress(snapshot(), { doctor: doctorWithFindings() }) })
+  const health = textOf(ui.byTestId('awr-health'))
+  assert.match(health, /orphan_session/, 'the finding is named by the code awr gave it')
+  assert.match(health, /× 2|× 1/, 'same-code findings are counted, not repeated')
+  assert.doesNotMatch(health, /database is sound/, 'the page cannot call the project sound while the doctor says otherwise')
+  const needs = textOf(ui.byTestId('awr-page-needs'))
+  assert.match(needs, /Active session has inconsistent bindings/, 'the message rides to the needs list in AWR own words')
+  const all = ui.text()
+  assert.doesNotMatch(all, /01M79R9SQBX26RJTY25HZ2X9M8/, 'session ids are not street address; they stay out of the default view')
+  const tips = []
+  const walk = (n) => { if (!n || typeof n !== 'object') return; if (!Array.isArray(n)) { if (typeof n.props?.title === 'string') tips.push(n.props.title); const c = n.children; if (Array.isArray(c)) for (const k of c) walk(k) } else for (const k of n) walk(k) }
+  walk(ui.root.tree)
+  assert.ok(tips.some((x) => x.includes('inconsistent bindings')), 'the full sentence is one hover away')
+})

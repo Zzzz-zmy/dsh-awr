@@ -348,3 +348,31 @@ test('an empty ledger read is reported as empty, and an awr that hands over noth
   }))
   assert.deepEqual(carried.activity.items, [{ kind: 'session.started', summary: 'Session started', at: 10, key: 'DSH-077' }], 'a snapshot that does carry events is used as it is')
 })
+
+// What awr doctor actually ships: { ok, database_ok, …, findings[] } — the findings are real, actionable, and
+// the page must show them (rev 130 real data: five orphan_session errors the page used to swallow).
+const orphanFinding = (id) => ({ code: 'orphan_session', message: 'Active session has inconsistent bindings: bound work item is terminal or unusable (completed)', object_id: id, object_kind: 'session', repair: { kind: 'interrupt_session', session_id: id }, severity: 'error' })
+test('doctor findings reach the page instead of being swallowed behind a sound database', () => {
+  const doctor = {
+    ok: false, database_ok: true, schema_version: 14, integrity: ['ok'], foreign_key_violations: 0, schema_issues: [],
+    findings: [
+      orphanFinding('01M79R9SQBX26RJTY25HZ2X9M8'), orphanFinding('01M79R9SRVZ421DR39DVMWKR8B'),
+      { code: 'active_session', message: 'Session is active in the database; process liveness was not inspected, so death cannot be inferred', object_id: '01M7AH4A22QKK5GGJBCEXWYZZH', object_kind: 'session', repair: { kind: 'interrupt_session', session_id: '01M7AH4A22QKK5GGJBCEXWYZZH' }, severity: 'info' },
+    ],
+  }
+  const view = buildProgress(snapshot([node('A-1')]), { doctor })
+  assert.equal(view.health.ok, false, 'the doctor says not sound; the page cannot call it sound')
+  assert.deepEqual(view.health.issues, [], 'it is the findings that hurt, not the database itself')
+  assert.deepEqual(view.health.findings, [
+    { code: 'orphan_session', severity: 'error', message: 'Active session has inconsistent bindings: bound work item is terminal or unusable (completed)', count: 2, repair: 'interrupt_session', ids: ['01M79R9SQBX26RJTY25HZ2X9M8', '01M79R9SRVZ421DR39DVMWKR8B'] },
+    { code: 'active_session', severity: 'info', message: 'Session is active in the database; process liveness was not inspected, so death cannot be inferred', count: 1, repair: 'interrupt_session', ids: ['01M7AH4A22QKK5GGJBCEXWYZZH'] },
+  ], 'AWR own words, same-code findings counted, in the order the doctor gave them')
+  const found = view.attention.filter((entry) => entry.kind === 'finding')
+  assert.equal(found.length, 1, 'errors ask for the person; an info note does not')
+  assert.equal(found[0].code, 'orphan_session')
+  assert.equal(found[0].count, 2)
+  assert.equal(found[0].detail, 'Active session has inconsistent bindings: bound work item is terminal or unusable (completed)', 'AWR wording kept, not rewritten')
+  assert.equal(found[0].ids[0], '01M79R9SQBX26RJTY25HZ2X9M8', 'the ids ride along for the detail fold, never the headline')
+  const quiet = buildProgress(snapshot([node('A-1')]), { doctor: { ok: true, database_ok: true, integrity: ['ok'], foreign_key_violations: 0, schema_issues: [], findings: [] } })
+  assert.equal(quiet.health.findings, undefined, 'a doctor that found nothing has nothing to say')
+})

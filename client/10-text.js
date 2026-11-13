@@ -231,6 +231,10 @@ const en = {
   'health.issue.schema': 'The database does not match the shape this awr expects',
   'health.issue.references': 'Some records point at things that are gone',
   'health.issue.integrity': 'The integrity checks did not all pass',
+  'health.findings.title': 'The doctor found problems — its own words, untouched:',
+  'health.notok': 'The doctor withholds its sign-off and gave nothing the page can show',
+  'health.repair': 'AWR suggests: {r}',
+  'health.repair.hint': 'This page only reads — it changed nothing. `awr doctor repair` lists the safe repairs; each one applies only the single repair you name, preserving sources and artifact files.',
   'accounting.title': 'Where the effort went',
   'accounting.notyet': 'No number yet: AWR withholds this until an approved contract and verified observations exist.',
 
@@ -521,6 +525,10 @@ const zh = {
   'health.issue.schema': '数据库与本版本 awr 期望的结构不符',
   'health.issue.references': '存在指向已消失记录的引用',
   'health.issue.integrity': '完整性检查未全部通过',
+  'health.findings.title': '体检发现了问题 —— 以下是 AWR 原话，未做改写：',
+  'health.notok': '体检没有放行，且没有给出页面能展示的原因',
+  'health.repair': 'AWR 建议：{r}',
+  'health.repair.hint': '页面只做读取，什么都没改。`awr doctor repair` 列出安全的修复动作：只执行你点名的那一个，源文件与工件文件都会保留。',
   'accounting.title': '投入核算',
   'accounting.notyet': '暂时没有数字：合同批准、观测核实之前，AWR 拒绝给这个数——留白是真的。',
 

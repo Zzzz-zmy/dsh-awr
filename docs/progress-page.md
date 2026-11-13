@@ -91,6 +91,23 @@ Two sections answer questions a gauge cannot: *is anyone in there* and *what act
   section says so instead of implying it is everything. When the read comes back with nothing it says the read was
   empty, and when the machine's awr will not hand the events over it says that — neither is presented as an idle project.
 
+### What the doctor found, even behind a sound database
+
+`awr doctor` answers more than "is the database healthy": it ships `findings[]`, and rev 130 of this very project had
+five `orphan_session` errors — sessions still bound to work that is already completed — while `database_ok` was true.
+A page that showed only "database is sound" would be a lie by omission, so:
+
+- The health section names each finding by the code AWR gave it, counts identical ones (`orphan_session × 5`) instead
+  of repeating them, and keeps AWR's own sentence in the tooltip, untranslated — it is a diagnosis on record, not copy.
+- An error finding also appears under **Needs you**, with the same words, because AWR is asking the person to look.
+  Info findings inform the health section only.
+- Where the finding carries a repair, the page shows what AWR itself suggested as the runnable command
+  (`awr doctor repair interrupt-session`, from `repair.kind`). The page never runs it: repair changes state, this page
+  only reads. AWR's own wording for these commands — apply exactly one named runtime repair, preserving sources and
+  artifact files — is what the hint says, no more.
+- Session ids from findings stay out of the default view like every other id; the batch repair (`finished-work`) does
+  not need them.
+
 - The host asks `awr capabilities` whether the awr has `overview snapshot` and never runs the command to find out: an
   awr that does not know it answers `Unsupported`, which poisons the plugin's use of that awr. An old awr gets a sentence
   saying so.
