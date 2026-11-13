@@ -178,7 +178,8 @@ test('the listener follows session/event and a disabled path registers nothing e
   listeners['session/event'](session, ev('compaction/start', { compactionId: 'q' }, 1))
   listeners['session/event'](session, ev('compaction/summary', { ...SUMMARY, compactionId: 'q' }, 2))
   listeners['session/event'](session, ev('compaction/end', { compactionId: 'q' }, 3))
-  await new Promise((r) => setTimeout(r, 30))
+  // The observation is written on a promise chain: wait for it rather than for a fixed delay, which races under load.
+  for (let i = 0; i < 100 && awr.observed.length === 0; i += 1) await new Promise((r) => setTimeout(r, 20))
   assert.equal(awr.observed.length, 1)
 })
 
