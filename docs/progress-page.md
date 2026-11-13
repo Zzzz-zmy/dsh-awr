@@ -56,6 +56,26 @@ and the card says so rather than drawing empty boxes as if they were unchecked b
 All of it is optional: a file written by an older host has none of these fields and the card falls back to the whole
 line, so `schema` stays 2.
 
+### Every number says how it was counted (DSH-079 P0-B)
+
+A benchmark page is not pretty because of its colours, it is readable because every number admits where it came from.
+Three rules, all of them test-locked:
+
+- **A metric carries its own 口径.** The goal band's four cells, the state count chips, each bar segment, each legend
+  chip, a lane count, the acceptance checklist and the "updated" stamp each hold a `title` that says what is being
+  counted. The state bar prints `42/ 46 done` plus a line saying *counts, not a completion rate* and **prints no `%`
+  anywhere on the page** — the ledger's `accounting.detail` forbids a blended percent, and a ratio drawn from four
+  buckets would be exactly that. The bar is measured against the whole ledger, so its remaining width is a hatched
+  "not in any of these counts" band instead of an implied 100%.
+- **Empty says which of the three empties it is.** `EmptyState` takes `kind`: `none` (the ledger has no work),
+  `broken` (a source is unreadable/conflicting, so the counts may be wrong) and `filtered` (there is work, the filter
+  hid it — and the panel offers *Clear filters*). A section with nothing in it is not deleted either: an empty
+  "Needs you" is good news and is written as such.
+- **Filtering is multiplied and never invisible.** The lane chips above each mainline and the state legend are the same
+  filter mechanism as the top bar, so clicking a lane narrows the states and vice versa. Every condition still active
+  is named in a row above the views with the count it produced (`2 of 7 shown`), each removable on its own, plus
+  *Clear all*. Chips not selected dim rather than disappear, so it stays obvious what the alternatives were.
+
 - The host asks `awr capabilities` whether the awr has `overview snapshot` and never runs the command to find out: an
   awr that does not know it answers `Unsupported`, which poisons the plugin's use of that awr. An old awr gets a sentence
   saying so.
