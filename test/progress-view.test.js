@@ -296,3 +296,55 @@ test('a next step with nothing beside it stays a next step, without invented fac
   assert.deepEqual(view.next, { key: 'DSH-077', state: 'active', text: '写测试', headline: '写测试', lane: { id: 'DSH', done: 0, total: 3 } })
   assert.equal(view.guidance, undefined, 'AWR said nothing about why this line, so the page says nothing either')
 })
+
+test('the page names who has their hands on the work, and says nothing about what they are typing', () => {
+  const view = buildProgress(snapshot([
+    node('DSH-077', { id: 'ID-77', status: 'completed' }),
+    node('DSH-078', { id: 'ID-78', status: 'in_progress' }),
+    node('DSH-079', { id: 'ID-79' }),
+  ], [], {
+    sessions: {
+      may_have_more: false,
+      sessions: [
+        { status: 'active', work_item_id: 'ID-78', model: 'some-model', started_at: 1000, start_project_revision: 44, last_checkpoint_id: 'C1' },
+        { status: 'active', work_item_id: null, started_at: 2000 },
+        { status: 'ended', work_item_id: 'ID-77', started_at: 3000 },
+      ],
+    },
+  }), { now: 5000 })
+  assert.deepEqual(view.working.items, [
+    // A session that claimed nothing stays visible: a missing row would read as nobody working.
+    { startedAt: 2000 },
+    { key: 'DSH-078', title: 'Work DSH-078', lane: 'DSH', model: 'some-model', startedAt: 1000, startRevision: 44, checkpoint: true },
+  ], 'newest first, ended sessions left out, the claimed work found by its id')
+  assert.equal(view.working.mayHaveMore, undefined)
+})
+
+test('the ledger’s own events come through in AWR’s words, newest first, and a cut-off read says so', () => {
+  const graph = snapshot([node('DSH-077', { id: 'ID-77' }), node('DSH-078', { id: 'ID-78' }), node('DSH-079', { id: 'ID-79' })])
+  const view = buildProgress(graph, {
+    now: 5000,
+    events: {
+      events: [
+        { type: 'checkpoint.created', summary: 'Checkpoint written', created_at: 100, project_revision: 3, work_item_id: 'ID-77', importance: 'normal' },
+        { type: 'work.blocked', summary: 'Work blocked', created_at: 200, project_revision: 4, work_item_id: null, importance: 'high' },
+      ],
+      next_cursor: { project_revision: 4 },
+    },
+  })
+  assert.deepEqual(view.activity.items, [
+    { kind: 'work.blocked', summary: 'Work blocked', at: 200, revision: 4, importance: 'high' },
+    { kind: 'checkpoint.created', summary: 'Checkpoint written', at: 100, revision: 3, key: 'DSH-077' },
+  ], 'the summaries are AWR’s own words, and only a normal importance is left unwritten')
+  assert.equal(view.activity.truncated, true, 'a bounded read admits it is bounded')
+})
+
+test('an empty ledger read is reported as empty, and an awr that hands over nothing gives the page nothing to show', () => {
+  const graph = snapshot([node('DSH-077'), node('DSH-078'), node('DSH-079')])
+  assert.deepEqual(buildProgress(graph, { events: { events: [] } }).activity, { items: [], source: 'history' })
+  assert.equal(buildProgress(graph).activity, undefined, 'no read at all, so the page says it read nothing rather than that nothing happened')
+  const carried = buildProgress(snapshot([node('DSH-077', { id: 'ID-77' }), node('DSH-078'), node('DSH-079')], [], {
+    events: { events: [{ type: 'session.started', summary: 'Session started', created_at: 10, work_item_id: 'ID-77' }], next_cursor: null },
+  }))
+  assert.deepEqual(carried.activity.items, [{ kind: 'session.started', summary: 'Session started', at: 10, key: 'DSH-077' }], 'a snapshot that does carry events is used as it is')
+})
