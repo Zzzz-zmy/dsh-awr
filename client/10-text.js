@@ -154,6 +154,8 @@ const en = {
   'health.issue.schema': 'The database does not match the shape this awr expects',
   'health.issue.references': 'Some records point at things that are gone',
   'health.issue.integrity': 'The integrity checks did not all pass',
+  'accounting.title': 'Where the effort went',
+  'accounting.notyet': 'No number yet: AWR withholds this until an approved contract and verified observations exist.',
 
   'state.active': 'In progress',
   'state.blocked': 'Blocked',
@@ -360,6 +362,8 @@ const zh = {
   'health.issue.schema': '数据库与本版本 awr 期望的结构不符',
   'health.issue.references': '存在指向已消失记录的引用',
   'health.issue.integrity': '完整性检查未全部通过',
+  'accounting.title': '投入核算',
+  'accounting.notyet': '暂时没有数字：合同批准、观测核实之前，AWR 拒绝给这个数——留白是真的。',
 
   'state.active': '进行中',
   'state.blocked': '受阻',

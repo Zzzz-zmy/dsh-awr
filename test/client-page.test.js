@@ -383,3 +383,20 @@ test("the foot of the page says what this awr can do and whether the project is 
   assert.equal(plain.ui.byTestId("awr-coverage"), undefined, "a file without the fact shows no section")
   assert.equal(plain.ui.byTestId("awr-health"), undefined)
 })
+
+test("when awr refuses to give an effort number, the page shows the refusal instead of a number", async () => {
+  const withNav = (nav) => ({ ...snapshot(), nav: { ...snapshot().nav, ...nav } })
+  const refusing = buildProgress(withNav({ accounting: { authoritative: false, available: false, detail: "Attach WS-040 account_approved_scope output; never invent a blended completion percent", is_not_goal_query_completion_rate: true, reason: "approved_contract_and_verified_observations_required", stages_are_independent: true } }))
+  assert.equal(refusing.accounting.available, false, "the refusal arrives as it was written")
+  const { ui } = await page({ progress: () => refusing })
+  const zone = textOf(ui.byTestId("awr-accounting"))
+  assert.match(zone, /No number yet/, "the page says so in one honest line")
+  assert.doesNotMatch(zone, /\d+ ?%/, "and never shows a percent AWR refused to give")
+  const counted = await page({ progress: () => buildProgress(withNav({ accounting: { available: true, sessions_observed: 6, works_claimed: 43 } })) })
+  const shown = textOf(counted.ui.byTestId("awr-accounting"))
+  assert.match(shown, /sessions_observed 6/, "when a real number exists it is shown as it is")
+  assert.match(shown, /works_claimed 43/)
+  const silent = await page()
+  assert.equal(silent.ui.byTestId("awr-accounting"), undefined, "when the file carries no accounting at all, nothing is drawn")
+})
+

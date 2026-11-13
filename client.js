@@ -167,6 +167,8 @@ window.__ModuleLoader__.load({
       'health.issue.schema': 'The database does not match the shape this awr expects',
       'health.issue.references': 'Some records point at things that are gone',
       'health.issue.integrity': 'The integrity checks did not all pass',
+      'accounting.title': 'Where the effort went',
+      'accounting.notyet': 'No number yet: AWR withholds this until an approved contract and verified observations exist.',
 
       'state.active': 'In progress',
       'state.blocked': 'Blocked',
@@ -373,6 +375,8 @@ window.__ModuleLoader__.load({
       'health.issue.schema': '数据库与本版本 awr 期望的结构不符',
       'health.issue.references': '存在指向已消失记录的引用',
       'health.issue.integrity': '完整性检查未全部通过',
+      'accounting.title': '投入核算',
+      'accounting.notyet': '暂时没有数字：合同批准、观测核实之前，AWR 拒绝给这个数——留白是真的。',
 
       'state.active': '进行中',
       'state.blocked': '受阻',
@@ -1488,6 +1492,19 @@ window.__ModuleLoader__.load({
             Number.isFinite(health.schemaVersion) ? h('div', { style: { fontSize: 12, lineHeight: '18px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, t('health.schema', { v: health.schemaVersion })) : null))
     }
 
+    /** The honesty box: AWR withholds an effort number until it has an approved contract and verified observations. What it does say is passed through as said. */
+    function AccountingFacts({ accounting, t }) {
+      if (!accounting) return null
+      return h('div', { 'data-testid': 'awr-accounting', style: { minWidth: 0 } },
+        h('div', { style: P.label }, t('accounting.title')),
+        accounting.available === true
+          ? h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '2px 16px', marginTop: 6, fontSize: 13, lineHeight: '20px', color: C.text, fontVariantNumeric: 'tabular-nums' } },
+            ...Object.entries(accounting).filter(([key, value]) => key !== 'available' && (typeof value === 'number' || typeof value === 'string')).map(([key, value]) => h('span', { key }, `${key} ${value}`)))
+          : h('div', { style: { display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 6 } },
+            h('span', { style: { transform: 'translateY(6px)' } }, h(Light, { state: 'waiting', size: 7 })),
+            h('span', { title: accounting.detail ? `${accounting.reason ?? ''} ${accounting.detail}` : undefined, style: { fontSize: 13, lineHeight: '20px', color: C.text2, minWidth: 0 } }, t('accounting.notyet'))))
+    }
+
     /** What needs the person: work that is stuck, and goals nobody confirmed. Three at first, the rest on request. */
     function Needs({ items, t, onPick }) {
       const [all, setAll] = React.useState(false)
@@ -1776,10 +1793,11 @@ window.__ModuleLoader__.load({
                       : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, onPick: pick })),
                 node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null),
 
-              progress.coverage || progress.health
+              progress.coverage || progress.health || progress.accounting
                 ? h('div', { 'data-testid': 'awr-footzones', style: { marginTop: 40, paddingTop: 20, borderTop: `.5px solid ${C.line2}`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px 48px' } },
                   h(Coverage, { coverage: progress.coverage, t }),
-                  h(Health, { health: progress.health, t }))
+                  h(Health, { health: progress.health, t }),
+                  h(AccountingFacts, { accounting: progress.accounting, t }))
                 : null)))
     }
 
