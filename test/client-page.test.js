@@ -8,7 +8,7 @@ import { loadClient, settle, textOf } from '../test-support/client-harness.js'
 
 const managed = () => ({ projectRoot: '/work/portal', state: 'initialized', steps: [], stop: null, receipt: null })
 const offer = () => ({ projectRoot: '/work/portal', state: 'not_initialized', steps: [], stop: null, receipt: null })
-const item = (key, title, status, extra = {}) => ({ key, title, status, ready: extra.ready === true, blocker: extra.blocker ?? null, active_claims: extra.claimed ? [{}] : [], archived: false, next_action: extra.next ?? null, source_ref: { locator: 'file:///work/portal/docs/work-ledger.yaml', pointer: `/work_items/${key}` } })
+const item = (key, title, status, extra = {}) => ({ id: `sid-${key}`, key, title, status, ready: extra.ready === true, blocker: extra.blocker ?? null, active_claims: extra.claimed ? [{}] : [], archived: false, next_action: extra.next ?? null, source_ref: { locator: 'file:///work/portal/docs/work-ledger.yaml', pointer: `/work_items/${key}` } })
 const snapshot = () => ({
   version: 1,
   project_revision: 12,
@@ -567,4 +567,56 @@ test('the legend and the mainlines filter each other, and every filter in force 
   assert.equal(ui.byTestId('awr-filters'), undefined, 'and with nothing in force the bar is gone')
   await mode(ui, 'lines')
   assert.equal(keys(ui).length, 5, 'the whole ledger is back on the screen')
+})
+
+test('the page says whose hands are on the work right now, and whose are not (DSH-079)', async () => {
+  const { ui } = await page({
+    progress: () => buildProgress({
+      ...snapshot(),
+      sessions: {
+        may_have_more: false,
+        sessions: [
+          { status: 'active', work_item_id: 'sid-A-2', model: 'some-model', started_at: Date.now() - 3600e3, start_project_revision: 44, last_checkpoint_id: 'c1' },
+          { status: 'active', work_item_id: null, started_at: Date.now() - 120e3 },
+          { status: 'ended', work_item_id: 'sid-A-1', started_at: Date.now() - 7200e3 },
+        ],
+      },
+    }),
+  })
+  const strip = textOf(ui.byTestId('awr-page-working'))
+  assert.match(strip, /Right now2 open/, 'how many sessions AWR has open, before any of their details')
+  assert.match(strip, /Build the upload endpoint/, 'the work a session claimed is named, not its identifier')
+  assert.match(strip, /An open session that claimed no work/, 'a session with nothing claimed is said out loud, not left out')
+  assert.ok(!strip.includes('A-2') && !strip.includes('sid-'), 'a session row shows the work and never an id')
+  const since = ui.all((node) => typeof node.props.title === 'string' && /from ledger revision/.test(node.props.title))
+  assert.ok(since.length, 'the ledger revision a session started at is there for the asking, not in the row')
+
+  const empty = await page()
+  assert.match(textOf(empty.ui.byTestId('awr-page-working')), /No session has any of this work claimed right now/, 'a project nobody has claimed is said, not skipped')
+})
+
+test('the ledger’s own events are shown in AWR’s words, and a read with none in it says so (DSH-079)', async () => {
+  const { ui } = await page({
+    progress: () => buildProgress(snapshot(), {
+      events: {
+        events: [
+          { type: 'checkpoint.created', summary: 'Checkpoint written', created_at: Date.now() - 600e3, project_revision: 12, work_item_id: 'sid-A-2', importance: 'normal' },
+          { type: 'source.registered', summary: 'Source authority registration changed', created_at: Date.now() - 900e3, project_revision: 1, work_item_id: null },
+        ],
+        next_cursor: { project_revision: 1 },
+      },
+    }),
+  })
+  const block = textOf(ui.byTestId('awr-activity'))
+  assert.match(block, /Ledger events2 events/, 'the count of what was read, then the events')
+  assert.match(block, /Checkpoint written/, 'AWR wrote these words and the page hands them over')
+  assert.match(block, /Build the upload endpoint/, 'an event says which piece of work it is about, by its name')
+  assert.match(block, /The page carries one bounded read/, 'a bounded read admits it is bounded')
+  assert.ok(!block.includes('sid-') && !block.includes('checkpoint.created'), 'an event stays plain: no internal ids, no machine keys')
+
+  const missing = await page()
+  assert.match(textOf(missing.ui.byTestId('awr-activity')), /This awr does not hand the page its event history/, 'nothing read is said as nothing read')
+
+  const none = await page({ progress: () => buildProgress(snapshot(), { events: { events: [] } }) })
+  assert.match(textOf(none.ui.byTestId('awr-activity')), /This read of the ledger carries no events/, 'an empty ledger is not claimed to be an idle project')
 })

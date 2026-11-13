@@ -411,6 +411,65 @@ function Needs({ items, t, onPick }) {
     items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('needs.less') : t('needs.more', { n: items.length - 3 })) : null)
 }
 
+/**
+ * Who has their hands on the work right now (DSH-079 P1). AWR knows a session is open and which work it claimed; it does
+ * not know what a person is doing this second, so the strip says whose turn it is, since when, and nothing else. A session
+ * that claimed nothing is named as one instead of being left out, because a missing row reads as nobody working.
+ */
+function Working({ working, t, onPick }) {
+  const [all, setAll] = React.useState(false)
+  const items = working?.items ?? []
+  const shown = all ? items : items.slice(0, 3)
+  return h('div', { 'data-testid': 'awr-page-working', style: { marginTop: 24 } },
+    h('div', { style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } },
+      h('span', { title: t('tip.working') }, t('working.title')),
+      h('span', { style: { marginLeft: 6, color: C.text3, fontWeight: 400, fontVariantNumeric: 'tabular-nums' } }, t('working.count', { n: items.length }))),
+    h('div', { style: { marginTop: 4, borderTop: `.5px solid ${C.line2}` } },
+      ...(items.length ? shown.map((item, index) => h(item.key ? 'button' : 'div', {
+        key: index,
+        ...(item.key ? { type: 'button', className: 'awr-link', onClick: () => onPick(item.key) } : {}),
+        title: [item.title, item.model, Number.isFinite(item.startRevision) ? t('working.since', { rev: item.startRevision }) : undefined].filter(Boolean).join(' · '),
+        style: { display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', padding: '8px 0', borderBottom: `.5px solid ${C.line2}`, borderRadius: 0, fontSize: 13, lineHeight: '20px', color: C.text },
+      },
+      h(Icon, { name: 'node', size: 12 }),
+      h('span', { className: 'awr-clamp1', style: { minWidth: 0, flex: 1, textAlign: 'left' } }, item.title ?? t('working.unclaimed')),
+      item.model ? h('span', { className: 'awr-clamp1', style: { fontSize: 12, color: C.text3, maxWidth: 140 } }, item.model) : null,
+      Number.isFinite(item.startedAt) ? h('span', { style: { fontSize: 12, color: C.faint, flex: 'none', fontVariantNumeric: 'tabular-nums' } }, ago(item.startedAt, t)) : null))
+        : [h('div', { key: 'none', 'data-testid': 'awr-working-none', style: { padding: '8px 0', ...P.note } }, t('working.empty'))]),
+      items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('needs.less') : t('working.more', { n: items.length - 3 })) : null,
+      working?.mayHaveMore ? h('div', { style: { ...P.note, marginTop: 4 } }, t('activity.more')) : null)
+  )
+}
+
+/**
+ * What the ledger recorded (DSH-079 P1), newest first, in AWR's own words — they are not translated because they are a
+ * record, not copy. A read that came back with nothing says so, and a page whose awr will not hand the events over says
+ * that instead, because a quiet block is read as a project that did nothing.
+ */
+function LedgerEvents({ activity, byKey, t, onPick }) {
+  const [all, setAll] = React.useState(false)
+  const items = activity?.items ?? []
+  const shown = all ? items : items.slice(0, 5)
+  return h('section', { 'data-testid': 'awr-activity', style: { marginTop: 40 } },
+    h('div', { style: { fontSize: 13, lineHeight: '20px', fontWeight: 500, color: C.text } },
+      h('span', { title: t('tip.activity') }, t('activity.title')),
+      h('span', { style: { marginLeft: 6, color: C.text3, fontWeight: 400, fontVariantNumeric: 'tabular-nums' } }, t('activity.count', { n: items.length }))),
+    h('div', { style: { marginTop: 4, borderTop: `.5px solid ${C.line2}` } },
+      ...(items.length ? shown.map((event, index) => h('div', {
+        key: index,
+        style: { display: 'flex', alignItems: 'baseline', gap: 8, padding: '8px 0', borderBottom: `.5px solid ${C.line2}`, fontSize: 13, lineHeight: '20px', color: C.text2 },
+      },
+      h('span', { style: { fontSize: 12, color: C.faint, flex: 'none', fontVariantNumeric: 'tabular-nums' }, title: Number.isFinite(event.at) ? clock(event.at) : undefined }, Number.isFinite(event.at) ? ago(event.at, t) : '—'),
+      h('span', { className: 'awr-clamp1', style: { minWidth: 0, flex: 1 } }, event.summary ?? event.kind),
+      // Which piece of work it is about, in that work's own words; its key stays in the tooltip like everywhere else.
+      event.key && byKey?.has(event.key) ? h('button', { type: 'button', className: 'awr-link', style: { fontSize: 12, flex: 'none', maxWidth: 160 }, title: event.key, onClick: () => onPick(event.key) },
+        h('span', { className: 'awr-clamp1' }, byKey.get(event.key).title)) : null))
+        : [h('div', { key: 'none', 'data-testid': 'awr-activity-none', style: { padding: '8px 0', ...P.note } }, activity ? t('activity.empty') : t('activity.unread'))]),
+      items.length > 5 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('activity.less') : t('activity.open')) : null,
+      activity?.truncated ? h('div', { style: { ...P.note, marginTop: 4 } }, t('activity.more')) : null)
+  )
+}
+
 /** The details of one piece of work, in plain words; its identifiers are folded at the end. */
 function Detail({ node, byKey, t, onPick, onClaim, onClose }) {
   const [claiming, setClaiming] = React.useState(false)
@@ -705,6 +764,7 @@ function ProgressPage(props) {
       : h(React.Fragment, null,
           h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
           h(NextStep, { next: progress.next, guidance: progress.guidance, accounting: progress.accounting, counts: progress.counts, t, onPick: (key) => setSelected(key) }),
+          h(Working, { working: progress.working, t, onPick: (key) => setSelected(key) }),
           h('div', { style: { marginTop: 24 } }, h(Gauge, { counts: progress.counts, t, only, onOnly: setOnly })),
           h(Needs, { items: [...(organization?.ready === false ? [{ kind: 'setup', title: t('needs.setup.title'), detail: t('needs.setup', { n: organization.gaps ?? 0 }) }] : []), ...(progress.attention ?? [])], t, onPick: (key) => setSelected(key) }),
 
@@ -729,6 +789,8 @@ function ProgressPage(props) {
                 : mode === 'graph' ? h(GraphView, { nodes: visible, t, selected, matches, zoom, onPick: pick })
                   : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, laneFilter, onLane: pickLane, onPick: pick })),
             node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null),
+
+          h(LedgerEvents, { activity: progress.activity, byKey, t, onPick: (key) => setSelected(key) }),
 
           progress.coverage || progress.health || progress.accounting
             ? h('div', { 'data-testid': 'awr-footzones', style: { marginTop: 40, paddingTop: 20, borderTop: `.5px solid ${C.line2}`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px 48px' } },
