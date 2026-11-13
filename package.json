@@ -36,7 +36,8 @@
   ],
   "scripts": {
     "build": "node scripts/build-client.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "verify:page": "node test-support/verify-page.mjs"
   },
   "dsh": {
     "bundle": {
