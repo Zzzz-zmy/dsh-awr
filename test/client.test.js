@@ -417,3 +417,21 @@ test('every sentence exists in both languages, and the Chinese interface is Chin
     assert.equal(placeholders(zh[key]), placeholders(en[key]), `the same placeholders in ${key}`)
   }
 })
+
+test('the chip itself carries how far the project is, before anybody clicks it', async () => {
+  const progress = () => ({
+    ok: true,
+    schema: 2,
+    nodes: [],
+    counts: { total: 43, done: 40, active: 1, ready: 1, blocked: 0, waiting: 1, sessions: 6 },
+    next: { key: 'DSH-076', state: 'active', text: 'finish the popover digest' },
+  })
+  const client = loadClient({ view: managed, work: () => workView(), progress })
+  const ui = await client.chip()
+  assert.equal(textOf(ui.byTestId('awr-chip-count')), '40/43', 'the count answers the question without opening anything')
+  assert.match(ui.byTestId('awr-dot').children.length >= 0 ? ui.find((node) => node.props.id === 'awr-header-action').props.title : '', /finish the popover digest/, 'the next step rides in the tooltip')
+  assert.deepEqual(client.calls, [], 'reading a file is not asking the host to do anything')
+  const plain = loadClient({ view: managed, work: () => workView() })
+  const chipUi = await plain.chip()
+  assert.equal(chipUi.byTestId('awr-chip-count'), undefined, 'no file, no numbers: the chip says nothing it does not know')
+})

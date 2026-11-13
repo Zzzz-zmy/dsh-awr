@@ -1181,10 +1181,11 @@ window.__ModuleLoader__.load({
 
       const light = lightOf(data)
       // The digest is read once when the card opens on a managed project: it costs the conversation nothing.
-      const digest = useProgressDigest(ctx, sessionId, open && Boolean(view) && (view.state === 'initialized' || view.state === 'completed'))
-      const button = h('button', { ref: trigger, id: 'awr-header-action', type: 'button', className: 'awr-chip', title: t('chip.title'), 'aria-label': t('chip.title'), 'aria-haspopup': 'dialog', 'aria-expanded': open, onClick: toggle },
+      const digest = useProgressDigest(ctx, sessionId, view && (view.state === 'initialized' || view.state === 'completed') ? (open ? 'open' : 'idle') : false)
+      const button = h('button', { ref: trigger, id: 'awr-header-action', type: 'button', className: 'awr-chip', title: digest?.next?.text ? `${t('chip.title')} — ${digest.next.text}` : t('chip.title'), 'aria-label': t('chip.title'), 'aria-haspopup': 'dialog', 'aria-expanded': open, onClick: toggle },
         h('span', { 'data-testid': 'awr-dot', 'data-state': view?.state ?? (error ? 'unavailable' : 'loading'), style: { display: 'inline-flex' } }, h(Light, { state: light.state, size: 7, pulse: light.pulse })),
-        t('chip.label'))
+        t('chip.label'),
+        digest?.counts?.total ? h('span', { 'data-testid': 'awr-chip-count', style: { fontSize: 12, lineHeight: '16px', color: C.text3, fontVariantNumeric: 'tabular-nums' } }, `${digest.counts.done}/${digest.counts.total}`) : null)
       if (!open || !anchor) return button
 
       const managed = view && (view.state === 'initialized' || view.state === 'completed')
