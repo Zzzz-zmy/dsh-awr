@@ -593,6 +593,17 @@ test('the page says whose hands are on the work right now, and whose are not (DS
 
   const empty = await page()
   assert.match(textOf(empty.ui.byTestId('awr-page-working')), /No session has any of this work claimed right now/, 'a project nobody has claimed is said, not skipped')
+
+  // A short session list is its own kind of almost-empty and gets its own sentence, not the events one.
+  const short = await page({
+    progress: () => buildProgress({
+      ...snapshot(),
+      sessions: { may_have_more: true, sessions: [{ status: 'active', work_item_id: 'sid-A-1', started_at: Date.now() }] },
+    }),
+  })
+  const shortStrip = textOf(short.ui.byTestId('awr-page-working'))
+  assert.match(shortStrip, /more sessions are open than it listed/, 'AWR saying the list is short is said in session words')
+  assert.ok(!shortStrip.includes('bounded read'), 'the events sentence is never borrowed for sessions')
 })
 
 test('the ledger’s own events are shown in AWR’s words, and a read with none in it says so (DSH-079)', async () => {

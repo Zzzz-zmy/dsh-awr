@@ -436,8 +436,9 @@ function Working({ working, t, onPick }) {
       item.model ? h('span', { className: 'awr-clamp1', style: { fontSize: 12, color: C.text3, maxWidth: 140 } }, item.model) : null,
       Number.isFinite(item.startedAt) ? h('span', { style: { fontSize: 12, color: C.faint, flex: 'none', fontVariantNumeric: 'tabular-nums' } }, ago(item.startedAt, t)) : null))
         : [h('div', { key: 'none', 'data-testid': 'awr-working-none', style: { padding: '8px 0', ...P.note } }, t('working.empty'))]),
-      items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('needs.less') : t('working.more', { n: items.length - 3 })) : null,
-      working?.mayHaveMore ? h('div', { style: { ...P.note, marginTop: 4 } }, t('activity.more')) : null)
+      items.length > 3 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, 'aria-expanded': all, onClick: () => setAll(!all) }, all ? t('needs.less') : t('working.more', { n: items.length - 3 })) : null,
+      // Its own sentence: a session window may be short in a different way than an event read is.
+      working?.mayHaveMore ? h('div', { style: { ...P.note, marginTop: 4 } }, t('working.may.more')) : null)
   )
 }
 
@@ -465,7 +466,7 @@ function LedgerEvents({ activity, byKey, t, onPick }) {
       event.key && byKey?.has(event.key) ? h('button', { type: 'button', className: 'awr-link', style: { fontSize: 12, flex: 'none', maxWidth: 160 }, title: event.key, onClick: () => onPick(event.key) },
         h('span', { className: 'awr-clamp1' }, byKey.get(event.key).title)) : null))
         : [h('div', { key: 'none', 'data-testid': 'awr-activity-none', style: { padding: '8px 0', ...P.note } }, activity ? t('activity.empty') : t('activity.unread'))]),
-      items.length > 5 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, onClick: () => setAll(!all) }, all ? t('activity.less') : t('activity.open')) : null,
+      items.length > 5 ? h('button', { type: 'button', className: 'awr-btn awr-btn-quiet', style: { margin: '4px 0 0 -8px', fontSize: 12 }, 'aria-expanded': all, onClick: () => setAll(!all) }, all ? t('activity.less') : t('activity.open')) : null,
       activity?.truncated ? h('div', { style: { ...P.note, marginTop: 4 } }, t('activity.more')) : null)
   )
 }
