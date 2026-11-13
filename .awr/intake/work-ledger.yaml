@@ -525,7 +525,7 @@ work_items:
 - id: DSH-073
   title: "推倒重来·节点0: 需求定版与开工拍板 (owner sign-off on the requirements digest)"
   kind: design
-  status: planned
+  status: in_progress
   priority: P0
   required: false
   goal: intake-goal
@@ -534,7 +534,7 @@ work_items:
   acceptance:
   - "需求清单（含从旧对话提炼的 7 条硬需求与流程卡点）以业主能直接拍板的中文摘要送达，并收到明确确认或修订意见。"
   - "清单明确记录：旧 Goal Console 方案与 Cockpit 独立实现均已作废，任何复用旧方案的代码需业主点名批准。"
-  next_action: "整理需求定版摘要，发企微/IM 请业主确认"
+  next_action: "等待业主对需求清单与终极目标口径的拍板；拍板后进入 DSH-074 真实页面截图盘点"
 - id: DSH-074
   title: "推倒重来·节点1: 真实页面现状盘点 (screenshot-driven audit of every surface)"
   kind: design
@@ -560,7 +560,7 @@ work_items:
   acceptance:
   - "方案文档含实拍证据引用、每套方案对终极目标四问的回答方式、认知负担与改造成本对比。"
   - "业主在 IM 上对选定方案与实施计划明确点头，记录在案。"
-  next_action: "等待 DSH-074 盘点完成"
+  next_action: "等待 DSH-074 盘点完成；UI/UX 工作标准 frontend-design skill 已入库 skills/frontend-design/（2026-11-13，commit 9569d4b）"
 - id: DSH-076
   title: "推倒重来·节点3: 分步实现 (build in small steps, tests green at every step)"
   kind: feature
