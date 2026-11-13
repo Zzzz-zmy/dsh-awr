@@ -602,3 +602,19 @@ work_items:
   "tags": ["dsh-067"]
   "evidence": ["docs/evidence/DSH-067/completion-report.json"]
   "verification": {"evidence_level":"locally_verified"}
+- id: DSH-078
+  title: "源故障诚实呈现: ledger source 不可读时显示故障横幅与修复命令，禁止渲染为空台账"
+  kind: feat
+  status: planned
+  priority: P1
+  required: false
+  goal: intake-goal
+  depends_on: []
+  summary: "2026-11-13 bmr 事故复盘：ledger mapping 被改导致 SourceConflict 时，插件把 198 项渲染成 0 项空台账，业主看到『全都读不到』且无从定位。host 侧已能拿到 awr status --json 的 source_issues，但 panel 快照与前端均未携带/展示。要求：源故障必须显眼可见并给出修复指引。"
+  acceptance:
+  - "progress 面板在 source_issues 非空时渲染醒目故障带：错误码（如 SourceConflict）、受影响项数、awr 官方 next_action/修复命令提示；不得静默显示 0 项空列表。"
+  - "panel 的 progress.json 快照携带 source_issues 字段；字段缺失时前端保持现行为（向后兼容）。"
+  - "chip 计数区在源故障时给出与空台账可区分的状态标识。"
+  - "node --test 全绿且 client harness 有用例覆盖 source_issues 渲染。"
+  next_action: "host 侧 progress-view 采集 source_issues → panel 快照带字段 → 30-data/50-page 渲染故障带；先加 harness 失败用例再实现。"
+  evidence: ["bmr 事故复盘 2026-11-13：SourceConflict 期间面板 total=0，无故障提示；修复 receipt 01M7AGT8HXEGTCEBNHD570SJNW"]
