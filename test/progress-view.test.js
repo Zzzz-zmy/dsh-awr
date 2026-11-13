@@ -171,3 +171,26 @@ test('a project with no work at all is a valid, empty view', () => {
   assert.deepEqual(view.counts, { total: 0, done: 0, active: 0, ready: 0, blocked: 0, waiting: 0, planned: 0, sessions: 0 })
   assert.deepEqual(view.attention, [])
 })
+
+test('the view answers the four questions and says honestly why work waits', () => {
+  const view = buildProgress(snapshot(
+    [node('A', { status: 'in_progress', active_claims: [{ agent_id: 'bot-1' }], next_action: 'Write the tests' }), node('B')],
+    [edge('B', 'A')],
+    {
+      goals: { hits: [{ title: 'Someday maybe', status: 'candidate' }, { title: 'Everyone can find a document', status: 'active' }] },
+      nav: {
+        project: { name: 'demo' },
+        mainline_graph: { nodes: [{ work_key: 'B', explainable_waits: [{ summary: 'Waiting on outcome of A', release_condition: 'Complete and accept A' }] }] },
+        accounting: { available: false, reason: 'approved_contract_and_verified_observations_required' },
+      },
+    },
+  ), { now: 1000 })
+  assert.equal(view.schema, 2)
+  assert.deepEqual(view.goal, { title: 'Everyone can find a document', status: 'active' }, 'the confirmed goal is the goal')
+  assert.deepEqual(view.next, { key: 'A', state: 'active', text: 'Write the tests' }, 'the next step is actionable work, with its key')
+  const byKey = Object.fromEntries(view.nodes.map((n) => [n.key, n]))
+  assert.equal(byKey.A.claimedBy, 'bot-1', 'whose turn has a name')
+  assert.deepEqual(byKey.B.wait, { summary: 'Waiting on outcome of A', release: 'Complete and accept A' })
+  assert.equal(byKey.B.state, 'waiting')
+  assert.equal(view.accounting.available, false, 'accounting is passed through as it is, including when it says no')
+})

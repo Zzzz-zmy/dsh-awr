@@ -35,7 +35,7 @@ const C = {
 }
 
 /** The colour of a work state. One meaning everywhere: the header light, the rows, the cards, the gauge. */
-const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.text, cancelled: C.faint, good: C.good }
+const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.good, cancelled: C.faint, good: C.good }
 /** The order a person looks at work in: what moves, what is stuck, what could start, what waits, what is not begun. */
 const STATE_ORDER = ['active', 'blocked', 'ready', 'waiting', 'planned', 'done', 'cancelled']
 

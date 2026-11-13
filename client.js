@@ -145,6 +145,14 @@ window.__ModuleLoader__.load({
       'page.goal': 'Goal: {title}',
       'page.goals.more': ' and {n} more',
       'gauge.done': 'done',
+      'band.goal': 'The goal',
+      'band.goal.none': 'AWR has not settled on a goal yet',
+      'band.howfar': 'How far along',
+      'band.who': 'Whose turn',
+      'band.who.none': 'Nobody has work in hand',
+      'band.next': 'Next step',
+      'band.next.none': 'Nothing to move right now',
+      'band.cells': '{done} of {total} pieces of work done',
       'state.active': 'In progress',
       'state.blocked': 'Blocked',
       'state.ready': 'Ready',
@@ -175,6 +183,11 @@ window.__ModuleLoader__.load({
       'lane.finished': '{n} mainline(s) finished',
       'graph.loose': 'Work with no dependencies',
       'detail.next': 'Next',
+      'detail.wait': 'Why it waits',
+      'detail.wait.release': 'Unlocks when',
+      'detail.take': 'Take this on',
+      'detail.take.run': 'Claim it in this conversation',
+      'detail.take.busy': 'Claiming',
       'detail.blocker': 'Blocked by',
       'detail.outcomes': 'Done when',
       'detail.depends': 'Depends on',
@@ -323,6 +336,14 @@ window.__ModuleLoader__.load({
       'page.goal': '目标：{title}',
       'page.goals.more': ' 等 {n} 个',
       'gauge.done': '已完成',
+      'band.goal': '目标是什么',
+      'band.goal.none': 'AWR 还没有定下目标',
+      'band.howfar': '离目标多远',
+      'band.who': '现在轮到谁',
+      'band.who.none': '还没有人接手',
+      'band.next': '下一步做什么',
+      'band.next.none': '暂时没有可推进的',
+      'band.cells': '{total} 项工作已完成 {done} 项',
       'state.active': '进行中',
       'state.blocked': '受阻',
       'state.ready': '可开始',
@@ -353,6 +374,11 @@ window.__ModuleLoader__.load({
       'lane.finished': '{n} 条主线已全部完成',
       'graph.loose': '没有依赖关系的工作',
       'detail.next': '下一步',
+      'detail.wait': '为什么在等',
+      'detail.wait.release': '解锁条件',
+      'detail.take': '接手这项工作',
+      'detail.take.run': '在本会话接手',
+      'detail.take.busy': '接手中',
       'detail.blocker': '卡在哪',
       'detail.outcomes': '完成标准',
       'detail.depends': '依赖',
@@ -434,7 +460,7 @@ window.__ModuleLoader__.load({
     }
 
     /** The colour of a work state. One meaning everywhere: the header light, the rows, the cards, the gauge. */
-    const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.text, cancelled: C.faint, good: C.good }
+    const STATE_COLOR = { active: C.live, blocked: C.bad, waiting: C.warn, ready: C.text3, planned: C.idle, done: C.good, cancelled: C.faint, good: C.good }
     /** The order a person looks at work in: what moves, what is stuck, what could start, what waits, what is not begun. */
     const STATE_ORDER = ['active', 'blocked', 'ready', 'waiting', 'planned', 'done', 'cancelled']
 
@@ -753,7 +779,7 @@ window.__ModuleLoader__.load({
       const read = React.useCallback(async () => {
         const payload = await readData(ctx, sessionId, '.progress')
         // A view written by another version of the plugin is treated as no view: the host is asked to write it again.
-        if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 1 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
+        if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 2 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
         setProgress((current) => (current && current.updatedAt === payload.updatedAt ? current : payload))
         setError(undefined)
         return payload
@@ -1312,6 +1338,35 @@ window.__ModuleLoader__.load({
     }
 
     /**
+     * The four questions asked when someone opens the page, answered before anything else: what is the goal, how far it
+     * is, whose turn it is, what happens next. The distance is told one cell per piece of work, never an invented rate.
+     */
+    function GoalBand({ progress, nodes, t, onPick }) {
+      const counts = progress.counts ?? {}
+      const total = counts.total || 0
+      const who = [...new Set(nodes.filter((node) => node.claimedBy).map((node) => node.claimedBy))]
+      const label = (title) => h('div', { style: { fontSize: 12, lineHeight: '16px', color: C.text3, marginBottom: 6 } }, title)
+      const none = h('span', { style: { color: C.text3 } }, t('band.goal.none'))
+      return h('div', { 'data-testid': 'awr-goalband', style: { marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px 28px', padding: '18px 0 20px', borderTop: `.5px solid ${C.line2}`, borderBottom: `.5px solid ${C.line2}` } },
+        h('div', { 'data-cell': 'goal', style: { minWidth: 0 } }, label(t('band.goal')),
+          h('div', { style: { fontSize: 14, lineHeight: '20px', color: progress.goal ? C.text : C.text3 } }, progress.goal?.title || none)),
+        h('div', { 'data-cell': 'howfar', style: { minWidth: 0 } }, label(t('band.howfar')),
+          h('span', { style: { fontSize: 22, lineHeight: '28px', fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: C.text } }, counts.done ?? 0),
+          h('span', { style: { fontSize: 12, lineHeight: '28px', color: C.text3, fontVariantNumeric: 'tabular-nums', marginLeft: 6 } }, `/ ${total} ${t('gauge.done')}`),
+          h('div', { role: 'img', 'aria-label': t('band.cells', { done: counts.done ?? 0, total }), style: { display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 6 } },
+            ...nodes.map((node) => h('span', { key: node.key, title: `${node.key} · ${node.title}`, style: { width: 10, height: 14, borderRadius: 2, background: STATE_COLOR[node.state] ?? C.idle, opacity: node.state === 'planned' || node.state === 'cancelled' ? 0.3 : 0.9 } })))),
+        h('div', { 'data-cell': 'who', style: { minWidth: 0 } }, label(t('band.who')),
+          who.length
+            ? h('div', { style: { fontSize: 14, lineHeight: '20px', color: C.text, wordBreak: 'break-word' } }, who.join(' · '))
+            : h('div', { style: { fontSize: 14, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.who.none')))),
+        h('div', { 'data-cell': 'next', style: { minWidth: 0 } }, label(t('band.next')),
+          progress.next?.text
+            ? h('button', { type: 'button', className: 'awr-link', 'id': 'awr-band-next', style: { textAlign: 'left', fontSize: 13, lineHeight: '20px', color: C.text }, onClick: () => onPick(progress.next.key) },
+              h('span', { className: 'awr-clamp2' }, progress.next.text))
+            : h('div', { style: { fontSize: 13, lineHeight: '20px' } }, h('span', { style: { color: C.text3 } }, t('band.next.none')))))
+    }
+
+    /**
      * The gauge: one bar for the whole project. The inked part is done; what is being worked on is lit; the rest is in the
      * order a person would ask about it. The legend counts each state and filters the work when pressed.
      */
@@ -1353,7 +1408,8 @@ window.__ModuleLoader__.load({
     }
 
     /** The details of one piece of work, in plain words; its identifiers are folded at the end. */
-    function Detail({ node, byKey, t, onPick, onClose }) {
+    function Detail({ node, byKey, t, onPick, onClaim, onClose }) {
+      const [claiming, setClaiming] = React.useState(false)
       const section = (label, body) => h('div', { style: { marginTop: 16 } }, h('div', { style: { fontSize: 12, lineHeight: '16px', color: C.text3, marginBottom: 4 } }, label), body)
       const links = (keys) => h('div', { style: { display: 'flex', flexDirection: 'column', gap: 2 } },
         ...keys.filter((key) => byKey.has(key)).map((key) => {
@@ -1368,6 +1424,9 @@ window.__ModuleLoader__.load({
           h('button', { type: 'button', className: 'awr-btn awr-btn-icon', style: { margin: '0 -4px 0 0' }, title: t('detail.close'), 'aria-label': t('detail.close'), onClick: onClose }, h(Icon, { name: 'x', size: 14 }))),
         h('div', { style: { marginTop: 4, fontSize: 15, lineHeight: '22px', fontWeight: 500, color: C.text, wordBreak: 'break-word' } }, node.title),
         node.blocker ? section(t('detail.blocker'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.bad, wordBreak: 'break-word' } }, node.blocker)) : null,
+        // Why AWR says it waits, in AWR's own words, with the condition that would release it.
+        node.wait ? section(t('detail.wait'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text2, wordBreak: 'break-word' } }, node.wait.summary,
+          node.wait.release ? h('div', { style: { marginTop: 4, fontSize: 12, lineHeight: '18px', color: C.text3 } }, `${t('detail.wait.release')}：${node.wait.release}`) : null)) : null,
         node.next ? section(t('detail.next'), h('div', { style: { fontSize: 13, lineHeight: '20px', color: C.text, wordBreak: 'break-word' } }, node.next)) : null,
         node.outcomes?.length ? section(t('detail.outcomes'), h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 } },
           ...node.outcomes.map((outcome, index) => h('li', { key: index, style: { display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, lineHeight: '20px', color: C.text2 } },
@@ -1375,6 +1434,11 @@ window.__ModuleLoader__.load({
             h('span', { style: { minWidth: 0, wordBreak: 'break-word' } }, outcome))))) : null,
         node.dependsOn?.some((key) => byKey.has(key)) ? section(t('detail.depends'), links(node.dependsOn)) : null,
         node.unlocks?.some((key) => byKey.has(key)) ? section(t('detail.unlocks'), links(node.unlocks)) : null,
+        // Ready work can really be taken: the button runs the plugin's own claim command in this conversation.
+        node.state === 'ready' ? section(t('detail.take'), h('button', {
+          type: 'button', className: 'awr-btn awr-btn-soft', 'id': 'awr-detail-claim', disabled: claiming,
+          onClick: async () => { setClaiming(true); try { await onClaim(node.key) } finally { setClaiming(false) } },
+        }, claiming ? t('detail.take.busy') : t('detail.take.run'))) : null,
         h('div', { style: { marginTop: 16, paddingTop: 12, borderTop: `.5px solid ${C.line2}` } },
           h(Fold, { label: t('tech.title'), testId: 'awr-detail-tech' },
             h('div', { style: { display: 'flex', flexDirection: 'column', gap: 2 } },
@@ -1527,6 +1591,24 @@ window.__ModuleLoader__.load({
         const natural = mode === 'graph' ? graphLayout(visible).width : lanesLayout(visible, lanes).width
         if (width && natural) setZoom(Math.max(0.3, Math.min(1, Math.floor((width / natural) * 20) / 20)))
       }
+      // Entering a canvas view fits the whole chain in the window, so the end of it is never off-screen.
+      // Hosts without a browser frame clock (tests, embedders) fall back to a timer.
+      React.useEffect(() => {
+        if (mode === 'lines') return undefined
+        const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 16)
+        const caf = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : (id) => clearTimeout(id)
+        const frame = raf(fit)
+        return () => caf(frame)
+      }, [mode, visible.length])
+
+      // Taking ready work is the plugin's own command, run in this conversation.
+      const claim = async (key) => {
+        try {
+          await project.act(`/awr claim ${key}`)
+        } catch {
+          // The host shows the reason; the button just becomes pressable again.
+        }
+      }
 
       const frame = (children) => h('div', { 'data-testid': 'awr-page', style: { height: '100%', overflow: 'auto', boxSizing: 'border-box', color: C.text, fontSize: 13, lineHeight: '20px' } }, children)
       const center = (children) => frame(h('div', { style: { maxWidth: 420, margin: '0 auto', padding: '72px 24px 200px' } }, children))
@@ -1568,6 +1650,7 @@ window.__ModuleLoader__.load({
         all.length === 0
           ? h('div', { 'data-testid': 'awr-page-empty', 'data-reason': 'nowork', style: { maxWidth: 420, margin: '72px auto 0' } }, h('p', { style: P.title }, t('empty.nowork.title')), h('p', { style: P.body }, t('empty.nowork.body')))
           : h(React.Fragment, null,
+              h(GoalBand, { progress, nodes: all, t, onPick: (key) => setSelected(key) }),
               h('div', { style: { marginTop: 24 } }, h(Gauge, { counts: progress.counts, t, only, onOnly: setOnly })),
               h(Needs, { items: [...(organization?.ready === false ? [{ kind: 'setup', title: t('needs.setup.title'), detail: t('needs.setup', { n: organization.gaps ?? 0 }) }] : []), ...(progress.attention ?? [])], t, onPick: (key) => setSelected(key) }),
 
@@ -1590,7 +1673,7 @@ window.__ModuleLoader__.load({
                   mode === 'lines' ? h(LinesView, { lanes, nodes: all, t, strip, selected, matches, showDone: showDone || only === 'done', onPick: pick })
                     : mode === 'graph' ? h(GraphView, { nodes: visible, t, selected, matches, zoom, onPick: pick })
                       : h(LanesView, { nodes: visible, lanes, t, strip, selected, matches, zoom, onPick: pick })),
-                node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClose: () => setSelected(undefined) }) : null))))
+                node ? h(Detail, { key: node.key, node, byKey, t, onPick: (key) => setSelected(key), onClaim: claim, onClose: () => setSelected(undefined) }) : null))))
     }
 
     // ---- client/60-rows.js ----

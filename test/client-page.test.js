@@ -35,7 +35,7 @@ const snapshot = () => ({
   },
   nav: {
     project: { name: 'Portal', id: 'P1' },
-    mainline_graph: { nodes: [{ work_key: 'A-2', outcomes: ['A PDF can be uploaded', 'A failed upload can be retried'], explainable_waits: [] }, { work_key: 'A-3', outcomes: [], explainable_waits: [{ reason: 'dependency' }] }] },
+    mainline_graph: { nodes: [{ work_key: 'A-2', outcomes: ['A PDF can be uploaded', 'A failed upload can be retried'], explainable_waits: [] }, { work_key: 'A-3', outcomes: [], explainable_waits: [{ summary: 'Waiting on the upload endpoint', release_condition: 'The upload endpoint is finished and accepted' }] }] },
   },
   goals: { hits: [{ external_key: 'g1', title: 'Everyone can find a document', status: 'active' }, { external_key: 'g2', title: 'Search answers in a second', status: 'candidate' }] },
   sessions: { sessions: [] },
@@ -52,6 +52,28 @@ const mode = async (ui, name) => {
   await ui.click(`awr-mode-${name}`)
   await settle()
 }
+
+test('the band at the very top answers the four questions', async () => {
+  const { ui } = await page()
+  const text = textOf(ui.byTestId('awr-goalband'))
+  assert.match(text, /The goalEveryone can find a document/, 'the confirmed goal is the first answer')
+  assert.match(text, /How far along2\/ 7 done/, 'the distance is told as done of total, never an invented rate')
+  assert.match(text, /Whose turnNobody has work in hand/, 'the claims in this fixture carry no names, and the band says so')
+  assert.match(text, /Next stepThe owner has to decide about interns/, 'what is stuck on a person is the next step')
+  await ui.click('awr-band-next')
+  await settle()
+  assert.match(textOf(ui.byTestId('awr-detail')), /Blocked byThe owner has to decide about interns/, 'the next step opens that work')
+})
+
+test('waiting work says why in AWR\'s own words, and ready work can really be claimed', async () => {
+  const { client, ui } = await page()
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'A-3'))
+  assert.match(textOf(ui.byTestId('awr-detail')), /Why it waitsWaiting on the upload endpointUnlocks when：The upload endpoint is finished and accepted/)
+  await ui.click(cards(ui).find((node) => node.props['data-key'] === 'B-1'))
+  assert.match(textOf(ui.byTestId('awr-detail')), /Take this on/)
+  await ui.click('awr-detail-claim')
+  assert.ok(client.calls.some((line) => line.startsWith('/awr claim B-1')), 'the button runs the real claim command in this conversation')
+})
 
 test('a page opened on data written a moment ago asks the host nothing and shows the project', async () => {
   const { client, ui } = await page()

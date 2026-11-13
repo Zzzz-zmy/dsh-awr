@@ -141,7 +141,7 @@ function useProgress(ctx, sessionId, language, enabled) {
   const read = React.useCallback(async () => {
     const payload = await readData(ctx, sessionId, '.progress')
     // A view written by another version of the plugin is treated as no view: the host is asked to write it again.
-    if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 1 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
+    if (typeof payload?.ok !== 'boolean' || (payload.ok && (payload.schema !== 2 || !Array.isArray(payload.nodes) || !Array.isArray(payload.lanes)))) throw new Error('the progress data is not a view this version reads')
     setProgress((current) => (current && current.updatedAt === payload.updatedAt ? current : payload))
     setError(undefined)
     return payload
