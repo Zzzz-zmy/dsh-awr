@@ -7,19 +7,30 @@ stands; this tab is where a person looks at the project.
 
 ## What it shows
 
-1. **The band and the next step.** Four questions across the top — the goal, how far along, whose turn, the next
-   step — and under them one card that answers the next step in three layers: the sentence, why it is on you, what it
-   moves (see below).
-2. **The gauge.** One number ("30 / 31 done") and one bar, in which each part is a state: done (ink), in progress,
-   blocked, waiting, ready, not started. The legend under it counts them and filters the page by a click.
-3. **Needs you.** Work with a recorded blocker, with the reason; goals nobody confirmed; and, while the project is
-   incomplete, one item saying so (below). Three at first, the rest on request.
-4. **The work, three ways**, one control: *Mainlines* (what is left in each mainline, finished work folded),
+In the order the page lays it out (verified against the rendered tree, not from memory):
+
+1. **The goal band.** Four questions across the top — the goal, how far along, whose turn, when it moved.
+2. **The next step, one card, three layers.** The sentence, why it is on you, what it moves — plus the basis line
+   and the fold with acceptance criteria and AWR's own accounting words (see below).
+3. **Whose hands are on it.** One line per open session: the work item's title, the model, how long it has been
+   open; an unclaimed session says so plainly. The starting revision stays in the tooltip (below).
+4. **The gauge.** Counts per state ("42 / 46 done") and one bar whose parts are states, the unfinished part hatched
+   rather than hidden; the legend counts them and filters the page by a click, with a named filter strip showing what
+   is filtered and how to clear it. Numbers carry their counting rule in tooltips; no blended percentage anywhere.
+5. **Needs you.** Work with a recorded blocker (with the reason), goals nobody confirmed, and the doctor's error-level
+   findings, in AWR's own words (below). When it is empty the page says so — that is good news, not a missing block.
+6. **The work, three ways**, one control: *Mainlines* (what is left in each mainline, finished work folded),
    *Dependencies* (what waits for what, in layers; pointing at a card lights its whole chain and dims the rest) and
    *Lanes* (the mainlines side by side, with the dependencies between them). Search, "show finished", zoom and fit.
-5. **The details of one piece of work**, in a drawer: its state, what blocks it, the next step, what it is done when,
-   what it depends on and what it unlocks (each a link to that work). Identifiers and the source file are folded under
-   **Technical details**.
+7. **What the ledger wrote down.** Recent AWR events, English verbatim — a record, not copy — newest first, each
+   pointing at the work item it mentions. Empty-read and could-not-read are two different sentences (below).
+8. **Is the project sound.** The database's facts plus what `awr doctor` found — grouped by code with counts, AWR's
+   own words in the tooltip, and the repair command AWR itself suggests. The page only reads; it never repairs (below).
+9. **The accounting.** AWR's own words on what completion means here, shown without a blended percent (honesty law).
+
+One more view, not a section: **the details of one piece of work**, in a drawer — its state, what blocks it, the next
+step, what it is done when, what it depends on and what it unlocks (each a link to that work). Identifiers and the
+source file are folded under **Technical details**.
 
 The states are AWR's own facts in the order a person looks at them: cancelled or archived, done, blocked (a blocker
 is recorded), in progress (in progress or claimed), ready, waiting (AWR names a wait), else not started. A mainline is the
@@ -134,17 +145,18 @@ the drawer. Focus rings are the host's.
 
 ## Checked
 
-- `test/progress-view.test.js` (12 tests): the six states and their order, the layers (and a cycle), the mainlines (a
-  generated key, small lanes, order), the criteria (the placeholder dropped, a written one kept), what needs the person,
-  an unknown edge, a project with no work.
-- `test/client-page.test.js` (21 tests): the gauge and the legend, needs, mainlines, no identifier visible by default,
-  the drawer and its links, Escape, the keyboard, the dependency layout and lines, the chain of a card, the lanes, search
-  and the legend as filters, the asks of the host (missing, old, other schema, once a minute, refresh, sync), an unmanaged
-  project, an old awr, the zoom, Chinese, the incomplete project, and that the card and the tab read one store.
-- In the desktop app, real data: this project (30 of 31 done), the demo project after a real takeover, and the 597-item
-  AWR project (479 done, 21 stuck): the three views, the drawer on a blocked card with its real criteria, the chain of a
-  card, the keyboard. In a browser harness with the host's own theme: four fixtures (an empty project, a dozen items, the
-  demo, 597 items), light and dark, English and Chinese.
+- Unit and page tests (`npm test`; counts move, run them for the current number): the six states and their order, the
+  layers and a cycle, the mainlines, the criteria, what needs the person; the gauge and its filters, needs, the drawer,
+  the keyboard, the three views, the host asks, unmanaged projects and old awrs, light and dark, English and Chinese —
+  plus the DSH-079 additions: the three layers of the next step, calibers on every number, the three kinds of empty,
+  cross-filters, the sessions and ledger events, the doctor's findings reaching both the health section and Needs you.
+- `npm run verify:page` (`test-support/verify-page.mjs`): every rule that a machine can judge — no percents, no
+  identifiers in view, a silent health section while the doctor refuses is a failure, error findings mirrored into
+  Needs you, AWR's repair command present, the read-only claim present, ledger events verbatim — judged against real
+  `awr` data, both locales, exit 1 on the first broken rule. Verified against awr 0.7.0 (the machine's) and 0.8.0.
+- In the desktop app, real data, at each milestone of the redesign: this project and others, both locales, the drawer
+  on a blocked card with its real criteria, the chain of a card, the keyboard; fixtures of an empty project, a dozen
+  items, and a 597-item project in a browser harness with the host's own theme, light and dark.
 
 ## Not checked
 
