@@ -506,13 +506,14 @@ work_items:
   "verification": {"evidence_level":"locally_verified"}
 - "id": "WORK-92d975eb2e77c6c6140496d0e866eead"
   "title": "DSH-065: The real-awr takeover tests do not depend on which awr the lab holds (0.7.0 or 0.8.0 and later)"
-  "status": "planned"
+  "status": "completed"
   "acceptance": ["The two tests that assumed the lab awr has no awr takeover pass and still test what they say with the lab awr at 0.7.0 and at 0.8.0 or later: the legacy probe test skips itself when the awr has the command, and the no-subagent receipt test reads the field of whichever takeover path ran (byCallback in the plugin's own implementation, byReviewer through awr takeover).","The whole suite passes with the released awr 0.8.0 as the lab awr and with 0.7.0 (369 tests, 3 skipped as before), and the lab awr of this checkout is the released 0.8.0."]
   "goal": ["intake-goal"]
   "kind": "test"
-  "next_action": "Edit test/takeover-cli.test.js and test/takeover-host.test.js, run the suite with both awr versions as the lab, move the lab awr to the released 0.8.0, then complete with the evidence"
+  "next_action": "完成：lab 已切至 released awr 0.8.0 (1105c427)，双版本全量各跑一轮均 0 失败（0.8.0 415 过/4 跳、0.7.0 416 过/3 跳，规模 419——比验收撰写时的 369 多为后续 P0/P1 新增用例）。验收第①条的自适应（legacy 探测自跳、receipt 读实际路径字段）此前已在 takeover-cli/takeover-host 落地；本轮另查出并修掉两处同样赌 awr 版本行为的用例：takeover.test.js 的 digest 把 .git 数进去（awr 0.8.0 问 git 问题时 git 自刷 stat-cache 索引即致 digest 漂移，非项目内容变化；改为排除 .git 并以 git status --porcelain 补断言，tracked/untracked 一并看住，.awr 仍在 digest 内）；prompt-context.test.js 把 awr 0.8.0 才有的 BudgetExceeded next_action 建议行写死（改为先问 awr 自己给了什么，给了要求原样出现、没给要求禁止出现，实测两版本载荷各验一遍）。commit 见证据"
   "priority": "P1"
   "summary": "Found by running the plugin's suite against the packaged awr 0.8.0 before its release: the plugin already drives awr takeover --await-review and --reviewed, and two tests written for the plugin's own implementation fail only because the lab awr now has the command. The suite passed with that awr otherwise (364 of 366, 3 skipped)."
+  "evidence": ["双 lab venv 各就各位：.local/awr-lab-070（pip originoneai-awr==0.7.0）与 .local/awr-lab-080（0.8.0 (1105c427)），.local/awr-lab/bin/awr 软链最终指向 0.8.0；.local/ 在 .gitignore 内不入库", "0.8.0 全量：419 tests / 415 pass / 4 skipped / 0 fail；0.7.0 全量：419 tests / 416 pass / 3 skipped / 0 fail（跳过差 1 = legacy 探测用例按验收自跳）", "实测两版本 BudgetExceeded 载荷差异（node 走 lib/awr-runtime.js 链路）：0.7.0 details 仅 {budget,required}，0.8.0 多 next_action『awr context compile --session … --intent work --budget N』——插件 describeFailure 两版本均如实透传，错的是写死建议行的断言", "commit test(takeover): 两个用例不再赌 lab awr 的版本——digest 不数 .git、建议行跟随 AWR 自己给的话（WORK-92d9）"]
 - "id": "WORK-e6aa9eb10a958373d0fdd007d98a53fd"
   "title": "DSH-066: Windows directories are not refused as too broad for takeover"
   "status": "completed"
